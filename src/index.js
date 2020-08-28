@@ -6,6 +6,7 @@ const config = require("../config")
 Client.login(process.env.BOT_TOKEN)
 
 Client.on('ready', () => {
+    Client.user.setActivity((config.DEBUGGING? "DEBUGGING | ":"") + PREFIX + "help", {type:"PLAYING"})
     console.log("Server count: " + Client.guilds.cache.size)
     Client.guilds.cache.forEach(g => {
         console.log(g.id)
@@ -17,12 +18,16 @@ Client.on('ready', () => {
 })
 
 Client.on("guildCreate", async g => {
-    g.leave()
-    console.log("The client has left after joining a non whitelisted server.")
+    if (!config.GUILDS.includes(g.id)){
+        g.leave()
+        console.log("The client has left after joining a non whitelisted server.")
+    }
 })
 
 const fs = require('fs')
+const path = require('path')
 const Jimp = require('jimp')
+const crypto = require('crypto')
 const fetch = require('node-fetch')
 
 async function getData(url) {
@@ -64,18 +69,18 @@ function isCdn(Link) {
     }
 }
 
-function handleImageLink(Link) {
+function newName(Link) {
     // input: link of an attachment or direct url to an image
-    // returns an array with the original name of the file and the extension, split
+    // returns a new file name so the correct image is uploaded after modification, just in case other images have the same name and are being worked on simultaneously
     var slashSplit = Link.split("/") // the name.extension is after the final slash
-    var name = slashSplit[slashSplit.length - 1] // String: name.extension
-    return name.split(".") // returns {name, extension}
+    var baseName = slashSplit[slashSplit.length - 1].split(".")[0] // name of the original file
+    return baseName + "-" + crypto.randomBytes(2).toString('hex') + ".png"
 }
 
 function validExt(ext) {
     // input: extension
     // returns if the extension is png, jpg, or jpeg
-    switch(ext.toLowerCase()) { // .PNG is valid but uppercase, convert it to lowercase
+    switch(ext.substring(1).toLowerCase()) { // .PNG is valid but uppercase, convert it to lowercase
         case "png":case"jpg":case"jpeg":return true
     }
     return false
@@ -94,6 +99,7 @@ const docs = " Documentation: https://github.com/mt60395/discordjs-bot/blob/mast
 Client.on('message', msg => {
     if (!(msg.content.substring(0, 1) == PREFIX)) return // prefix check
     if (msg.author.bot) return // bot recursion check
+    if (config.DEBUGGING) if (!config.DEBUGGERS.includes(msg.author.id)) return msg.reply("The bot is currently in debugging mode. Please temporarily refrain from using commands.")
     var args = msg.content.substring(PREFIX.length).split(" ") // only use after the prefix
     switch(args[0]) {
         case "help":
@@ -192,19 +198,15 @@ Client.on('message', msg => {
             // only argument is the direction (attachment provided) or 2 arguments, and first is a link so the second is the direction
 
             if (degree > 0 && degree < 360) { // Degree Number must be greater than 0, NaN is denied
-                var splitLink = handleImageLink(Link) // name and extension
-                if (!validExt(splitLink[1])) return msg.reply("Invalid image format." + docs)
-
-                var output = splitLink[0] + '.png' // final output name
+                if (!validExt(path.extname(Link))) return msg.reply("Invalid image format." + docs)
+                var output = newName(Link)
 
                 async function rotateFunc() { 
                     let input = await Jimp.read(Link)
                     input.rotate(degree).write(output)
-                    fs.stat('./' + output, () => {
-                        msg.channel.send("**Sucessfully rotated " + degree + " degrees! :white_check_mark:**", {files:['./' + output]}).catch(()=>{msg.reply("There was an error uploading your image.")})
-                        setTimeout(function() {
-                            fs.unlink(output, function(){}) 
-                        }, 1500) // deleting too quickly will result in the file not actually sending
+                    fs.stat('./' + output, async () => {
+                        await msg.channel.send("**Sucessfully rotated " + degree + " degrees! :white_check_mark:**", {files:['./' + output]}).catch(()=>{msg.reply("There was an error uploading your image.")})
+                        if (!config.SAVE_IMAGES) fs.unlink(output, function(){}) 
                     })
                 }
                 rotateFunc()
@@ -250,20 +252,17 @@ Client.on('message', msg => {
             var bool3 = Number.isInteger(res[0]), bool4 = Number.isInteger(res[1]) // JIMP errors with non integers
 
             if (bool && bool2 && bool3 && bool4){
-                var splitLink = handleImageLink(Link) // name and extension
-                if (!validExt(splitLink[1])) return msg.reply("Invalid image format." + docs)
-                var output = splitLink[0] + '.png' // final output name
+                if (!validExt(path.extname(Link))) return msg.reply("Invalid image format." + docs)
+                var output = newName(Link)
 
                 async function resizeFunc() { 
                     let input = await Jimp.read(Link)
                     input.resize(res[0], res[1])
                     .quality(50)
                     .write(output)
-                    fs.stat('./' + output, () => {
-                        msg.channel.send("**Sucessfully resized to " + resolution + "! :white_check_mark:**", {files:['./' + output]}).catch(()=>{msg.reply("There was an error uploading your image.")})
-                        setTimeout(function() {
-                            fs.unlink(output, function(){}) 
-                        }, 1500) // deleting too quickly will result in the file not actually sending
+                    fs.stat('./' + output, async () => {
+                        await msg.channel.send("**Sucessfully resized to " + resolution + "! :white_check_mark:**", {files:['./' + output]}).catch(()=>{msg.reply("There was an error uploading your image.")})
+                        if (!config.SAVE_IMAGES) fs.unlink(output, function(){}) 
                     })
                 }
                 resizeFunc()
@@ -286,7 +285,7 @@ Client.on('message', msg => {
             msg.attachments.size > 0 ? dir = args[1]:dir = args[2]
             // only argument is the direction (attachment provided) or 2 arguments, and first is a link so the second is the direction
 
-            if (typeof dir == 'undefined') return msg.reply("Invalid direction. It must be horizontal or vertical." + docs)
+            if (typeof dir == 'undefined') return msg.reply("Invalid direction. It must be horizontal, vertical, or both." + docs)
 
             var validDir = false, h = false, v = false, both = false // variable both is for the message reply, other vars are for direction/validity checking
             switch(dir.toLowerCase()) { // checks if the direction is valid
@@ -301,18 +300,15 @@ Client.on('message', msg => {
             }
 
             if (validDir) {
-                var splitLink = handleImageLink(Link) // name and extension
-                if (!validExt(splitLink[1])) return msg.reply("Invalid image format." + docs)
-                var output = splitLink[0] + '.png' // final output name
+                if (!validExt(path.extname(Link))) return msg.reply("Invalid image format." + docs)
+                var output = newName(Link)
 
                 async function mirrorFunc() { 
                     let input = await Jimp.read(Link)
                     input.mirror(h, v).write(output)
-                    fs.stat('./' + output, () => {
-                        msg.channel.send("**Sucessfully mirrored " + (both?"horizontally and vertically":h?"horizontally":"vertically") + "! :white_check_mark:**", {files:['./' + output]}).catch(()=>{msg.reply("There was an error uploading your image.")})
-                        setTimeout(function() {
-                            fs.unlink(output, function(){}) 
-                        }, 1500) // deleting too quickly will result in the file not actually sending
+                    fs.stat('./' + output, async () => {
+                        await msg.channel.send("**Sucessfully mirrored " + (both?"horizontally and vertically":h?"horizontally":"vertically") + "! :white_check_mark:**", {files:['./' + output]}).catch(()=>{msg.reply("There was an error uploading your image.")})
+                        if (!config.SAVE_IMAGES) fs.unlink(output, function(){}) 
                     })
                 }
                 mirrorFunc()
@@ -329,19 +325,16 @@ Client.on('message', msg => {
                 if (!isCdn(Link)) return msg.reply("Please make sure your link starts with cdn.discordapp.com, or upload your attachment instead.")
             }
 
-            var splitLink = handleImageLink(Link) // name and extension
-            if (!validExt(splitLink[1])) return msg.reply("Invalid image format." + docs)
-            var output = splitLink[0] + '.png' // final output name
+            if (!validExt(path.extname(Link))) return msg.reply("Invalid image format." + docs)
+            var output = newName(Link)
 
             async function invertFunc() { 
                 let input = await Jimp.read(Link)
                 input.invert()
                 .write(output)
-                fs.stat('./' + output, () => {
-                    msg.channel.send("**Sucessfully inverted colors! :white_check_mark:**", {files:['./' + output]}).catch(()=>{msg.reply("There was an error uploading your image.")})
-                    setTimeout(function() {
-                        fs.unlink(output, function(){}) 
-                    }, 1500) // deleting too quickly will result in the file not actually sending
+                fs.stat('./' + output, async () => {
+                    await msg.channel.send("**Sucessfully inverted colors! :white_check_mark:**", {files:['./' + output]}).catch(()=>{msg.reply("There was an error uploading your image.")})
+                    if (!config.SAVE_IMAGES) fs.unlink(output, function(){}) 
                 })
             }
             return invertFunc()
@@ -400,18 +393,16 @@ Client.on('message', msg => {
                 }
             }
 
-            function newPass(str) { // recursive string generation :sunglasses:
-                if (str.length < length) {
-                    str += String.fromCharCode(Math.random() * 94 + 34)
-                    return newPass(str)
-                }
+            function genString(LENGTH) {
+                var str = ""
+                for (var i = 0; i < LENGTH; i++) str += String.fromCharCode(Math.random() * 94 + 34)
                 return str
             }
 
             var embed = new Discord.MessageEmbed()
             .setColor(randColor())
             .setTitle("New Password: Length " + length)
-            .setDescription("```" + newPass("") + "```")
+            .setDescription("```" + genString(length) + "```")
             async function dmEmbed() {
                 var fail = false
                 await msg.author.send(embed).catch(e=>{
@@ -589,5 +580,43 @@ Client.on('message', msg => {
                 msg.channel.send(embed)
             }
             return ROBLOXLookup()
+        
+        case "debug":
+        case "debugmode":
+            if (config.DEBUGGERS.includes(msg.author.id)) {
+                config.DEBUGGING = !config.DEBUGGING
+                Client.user.setActivity((config.DEBUGGING? "DEBUGGING | ":"") + PREFIX + "help", {type:"PLAYING"})
+                var embed = new Discord.MessageEmbed()
+                .setColor(randColor())
+                .setTitle("Debug Status")
+                if (config.DEBUGGING) {
+                    embed.setDescription("Debugging mode is now on, as requested by <@!" + msg.author.id + ">. Only debuggers will be allowed to use commands temporarily.")
+                }
+                else {
+                    embed.setDescription("Debugging mode is now off, as requested by <@!" + msg.author.id + ">. Command usage restrictions have been lifted.")
+                }
+                return msg.channel.send(embed)
+            }
+            else {
+                return msg.reply("You are not authorized to use the command " + args[0] + ".")
+            }
+        
+        case "saveimages":
+            if (config.DEBUGGERS.includes(msg.author.id)) {
+                config.SAVE_IMAGES = !config.SAVE_IMAGES
+                var embed = new Discord.MessageEmbed()
+                .setColor(randColor())
+                .setTitle("Save Image Status")
+                if (config.SAVE_IMAGES) {
+                    embed.setDescription("Saving images is now on, as requested by <@!" + msg.author.id + ">. The bot now has all modified images downloaded and saved locally.")
+                }
+                else {
+                    embed.setDescription("Saving images is now off, as requested by <@!" + msg.author.id + ">. The bot will no longer save images locally and will immediately delete images.")
+                }
+                return msg.channel.send(embed)
+            }
+            else {
+                return msg.reply("You are not authorized to use the command " + args[0] + ".")
+            }
     }
 })

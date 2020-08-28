@@ -1,4 +1,7 @@
 {
+    "DEBUGGING":false,
+    "DEBUGGERS": [""],
     "GUILDS": [""],
-    "EXTERNAL_HOSTING":false
+    "EXTERNAL_HOSTING":false,
+    "SAVE_IMAGES":false
 }

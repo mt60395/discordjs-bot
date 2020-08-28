@@ -1,6 +1,6 @@
-# Discord Bot
+# discordjs-bot
 ## Description
-This is a multipurpose Discord bot.
+This is a multipurpose Discord bot using discord.js.
 
 Made mainly for my needs, it has: a server whitelist, discord user lookup, simple image manipulation, poll creation, and many other various commands.
 
@@ -16,7 +16,7 @@ Provides information about the bot uptime.
 
 *Alias: status*
 ### user
-Provides information about a user from a user id or mention. https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-
+Provides information about a user from a user ID or mention. https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-
 
 *Alias: userinfo*
 
@@ -29,7 +29,7 @@ Display informations about the server.
 
 *Alias: serverinfo*
 ### avatar
-Display a user's avatar / profile picture from a user id or mention. https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-
+Display a user's avatar / profile picture from a user ID or mention. https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-
 
 ```avatar {userid}```
 
@@ -132,7 +132,18 @@ Displays information about a ROBLOX user.
 
 ```roblox {username}```
 
+## Restricted commands
+These commands are restricted to whitelisted user IDs labeled as DEBUGGERS in the config file.
+
+### debug
+Toggles the debugging mode, which restricts access to whitelisted debuggers.
+
+*Alias: debugmode*
+
+### saveimages
+Toggles saving images. If an upload error occurs, the image is still stored locally.
+
 ## Installation
 - Obtain a Discord bot token over at https://discord.com/developers
 - Put your bot token in .env next to BOT_TOKEN.
-- Modify the config.json file to fit your needs. Add your whitelisted guild IDs.
+- Modify the config.json file to fit your needs. Add your whitelisted guild IDs and such. Debug/saveimages commands won't write to the JSON file, but the config will have the default options once the bot restarts.

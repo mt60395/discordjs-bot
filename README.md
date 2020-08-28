@@ -62,6 +62,13 @@ The direction can be: ```horizontal```, ```vertical```, ```h```, ```v```, ```bot
 
 *With a link:* ```mirror {link} {direction}```
 
+### invert
+Inverts an image's colors. Only accepts png, jpg, and jpeg files.
+
+*With an attachment (files uploaded with the command as a comment):* ```invert```
+
+*With a link:* ```invert {link}```
+
 ### rng
 Random number generator. Providing a minimum + maximum number is optional. It is -1000000 and 1000000 by default.
 

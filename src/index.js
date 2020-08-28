@@ -51,7 +51,7 @@ function getLink(attachments, arg) {
     else if (arg.startsWith('http')) { // uses arg if attachment is not present
         return arg
     }
-    return 0
+    return null
 }
 
 function isCdn(Link) {
@@ -181,7 +181,7 @@ Client.on('message', msg => {
             if (typeof args[1] == 'undefined') return msg.reply("Command usage error." + docs) // at least 1 arg
 
             var Link = getLink(msg.attachments, args[1])
-            if (Link == 0) return msg.reply("Attachment missing.")
+            if (!Link) return msg.reply("Attachment missing.")
 
             if (!config.EXTERNAL_HOSTING) { // if hosting on your own device
                 if (!isCdn(Link)) return msg.reply("Please make sure your link starts with cdn.discordapp.com, or upload your attachment instead.")
@@ -200,10 +200,10 @@ Client.on('message', msg => {
                 async function rotateFunc() { 
                     let input = await Jimp.read(Link)
                     input.rotate(degree).write(output)
-                    fs.exists('./' + output, () => {
-                        msg.channel.send("**Sucessfully rotated " + degree + " degrees! :white_check_mark:**", {files:['./' + output]}),
+                    fs.stat('./' + output, () => {
+                        msg.channel.send("**Sucessfully rotated " + degree + " degrees! :white_check_mark:**", {files:['./' + output]}).catch(()=>{msg.reply("There was an error uploading your image.")})
                         setTimeout(function() {
-                            fs.unlink(output, function(err){if(err) throw err}) 
+                            fs.unlink(output, function(){}) 
                         }, 1500) // deleting too quickly will result in the file not actually sending
                     })
                 }
@@ -219,7 +219,7 @@ Client.on('message', msg => {
             if (typeof args[1] == 'undefined') return msg.reply("Command usage error." + docs) // at least 1 arg
 
             var Link = getLink(msg.attachments, args[1])
-            if (Link == 0) return msg.reply("Attachment missing.")
+            if (!Link) return msg.reply("Attachment missing.")
             if (!config.EXTERNAL_HOSTING) { // if hosting on your own device
                 if (!isCdn(Link)) return msg.reply("Please make sure your link starts with cdn.discordapp.com, or upload your attachment instead.")
             }
@@ -259,10 +259,10 @@ Client.on('message', msg => {
                     input.resize(res[0], res[1])
                     .quality(50)
                     .write(output)
-                    fs.exists('./' + output, () => {
-                        msg.channel.send("**Sucessfully resized to " + resolution + "! :white_check_mark:**", {files:['./' + output]}),
+                    fs.stat('./' + output, () => {
+                        msg.channel.send("**Sucessfully resized to " + resolution + "! :white_check_mark:**", {files:['./' + output]}).catch(()=>{msg.reply("There was an error uploading your image.")})
                         setTimeout(function() {
-                            fs.unlink(output, function(err){if(err) throw err}) 
+                            fs.unlink(output, function(){}) 
                         }, 1500) // deleting too quickly will result in the file not actually sending
                     })
                 }
@@ -277,7 +277,7 @@ Client.on('message', msg => {
             if (typeof args[1] == 'undefined') return msg.reply("Command usage error." + docs) // at least 1 arg
 
             var Link = getLink(msg.attachments, args[1])
-            if (Link == 0) return msg.reply("Attachment missing.")
+            if (!Link) return msg.reply("Attachment missing.")
             if (!config.EXTERNAL_HOSTING) { // if hosting on your own device
                 if (!isCdn(Link)) return msg.reply("Please make sure your link starts with cdn.discordapp.com, or upload your attachment instead.")
             }
@@ -307,12 +307,11 @@ Client.on('message', msg => {
 
                 async function mirrorFunc() { 
                     let input = await Jimp.read(Link)
-                    input.mirror(h, v)
-                    .write(output)
-                    fs.exists('./' + output, () => {
-                        msg.channel.send("**Sucessfully mirrored " + (both?"horizontally and vertically":h?"horizontally":"vertically") + "! :white_check_mark:**", {files:['./' + output]}),
+                    input.mirror(h, v).write(output)
+                    fs.stat('./' + output, () => {
+                        msg.channel.send("**Sucessfully mirrored " + (both?"horizontally and vertically":h?"horizontally":"vertically") + "! :white_check_mark:**", {files:['./' + output]}).catch(()=>{msg.reply("There was an error uploading your image.")})
                         setTimeout(function() {
-                            fs.unlink(output, function(err){if(err) throw err}) 
+                            fs.unlink(output, function(){}) 
                         }, 1500) // deleting too quickly will result in the file not actually sending
                     })
                 }
@@ -322,6 +321,30 @@ Client.on('message', msg => {
                 return msg.reply("Invalid direction. It must be horizontal, vertical, or both." + docs)
             }
         break
+
+        case "invert":
+            var Link = getLink(msg.attachments, args[1])
+            if (!Link) return msg.reply("Attachment missing.")
+            if (!config.EXTERNAL_HOSTING) { // if hosting on your own device
+                if (!isCdn(Link)) return msg.reply("Please make sure your link starts with cdn.discordapp.com, or upload your attachment instead.")
+            }
+
+            var splitLink = handleImageLink(Link) // name and extension
+            if (!validExt(splitLink[1])) return msg.reply("Invalid image format." + docs)
+            var output = splitLink[0] + '.png' // final output name
+
+            async function invertFunc() { 
+                let input = await Jimp.read(Link)
+                input.invert()
+                .write(output)
+                fs.stat('./' + output, () => {
+                    msg.channel.send("**Sucessfully inverted colors! :white_check_mark:**", {files:['./' + output]}).catch(()=>{msg.reply("There was an error uploading your image.")})
+                    setTimeout(function() {
+                        fs.unlink(output, function(){}) 
+                    }, 1500) // deleting too quickly will result in the file not actually sending
+                })
+            }
+            return invertFunc()
         // image manipulation end
 
         case "rng":

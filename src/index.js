@@ -18,6 +18,7 @@ Client.on('ready', () => {
 })
 
 Client.on("guildCreate", async g => {
+    console.log("The client has joined a new server.")
     if (!config.GUILDS.includes(g.id)){
         g.leave()
         console.log("The client has left after joining a non whitelisted server.")
@@ -26,11 +27,12 @@ Client.on("guildCreate", async g => {
 
 const fs = require('fs')
 const path = require('path')
-const Jimp = require('jimp')
+const jimp = require('jimp')
 const crypto = require('crypto')
 const fetch = require('node-fetch')
+const chromium = require('puppeteer')
 
-async function getData(url) {
+async function fetchJSON(url) {
     const response = await fetch(url)
     return response.json()
 }
@@ -48,19 +50,35 @@ function formatID(id) {
     return id
 }
 
+function fixLink(arg) { // possible < > that can be fixed
+    var fixedLink = arg
+    if (arg.startsWith("<")) fixedLink = fixedLink.substring(1)
+    if (arg.endsWith(">")) fixedLink = fixedLink.substring(0, fixedLink.length - 1)
+    return fixedLink
+}
+
 function getLink(attachments, arg) {
     if (attachments.size > 0) {
         // console.log(msg.attachments)
         return `${attachments.first().url}`
     }
-    else if (arg.startsWith('http')) { // uses arg if attachment is not present
+    else if (fixLink(arg).startsWith('http')) { // uses arg if attachment is not present
         return arg
     }
     return null
 }
 
+function getDomain(arg) {
+    arg = fixLink(arg)
+    var protocol = arg.startsWith('http')?'http://':arg.startsWith('https')?'https://':null
+    if (arg.endsWith("/")) arg = arg.substring(0, arg.length - 1)
+    if (protocol) return arg.substring(protocol.length + 1)
+    return arg
+}
+
 function isCdn(Link) {
     // checks if an image is a cdn.discordapp.com link if you are hosting on your own PC to not get IP grabbed
+    Link = fixLink(Link)
     var split = Link.split("://") // {protocol, domain}
     switch(split[0]) {
         case "http":case"https":
@@ -72,6 +90,7 @@ function isCdn(Link) {
 function newName(Link) {
     // input: link of an attachment or direct url to an image
     // returns a new file name so the correct image is uploaded after modification, just in case other images have the same name and are being worked on simultaneously
+    Link = fixLink(Link)
     var slashSplit = Link.split("/") // the name.extension is after the final slash
     var baseName = slashSplit[slashSplit.length - 1].split(".")[0] // name of the original file
     return baseName + "-" + crypto.randomBytes(2).toString('hex') + ".png"
@@ -113,7 +132,16 @@ Client.on('message', msg => {
 
         case "status":
         case "uptime":
-            return msg.channel.send("**Uptime: " + formatTime(Client.uptime) + "**")
+            var embed = new Discord.MessageEmbed()
+            .setColor(randColor())
+            .setTitle("Current Status")
+            .addFields(
+                {name:"Uptime", value:formatTime(Client.uptime)},
+                {name:"Debugging mode", value:config.DEBUGGING},
+                {name:"Saving images locally", value:config.SAVE_IMAGES},
+                {name:"Accepting external images", value:config.EXTERNAL_HOSTING}
+            )
+            return msg.channel.send(embed)
 
         case "info":
             var embed = new Discord.MessageEmbed()
@@ -121,7 +149,8 @@ Client.on('message', msg => {
             .setTitle("Bot Information")
             .addFields(
                 {name:"Creator", value:"https://github.com/mt60395/"},
-                {name:"GitHub Repository", value:"https://github.com/mt60395/discordjs-bot"}
+                {name:"GitHub Repository", value:"https://github.com/mt60395/discordjs-bot"},
+                {name:"Commands and documentation", value:"https://github.com/mt60395/discordjs-bot/blob/master/README.md"}
             )
             return msg.channel.send(embed)
 
@@ -145,7 +174,7 @@ Client.on('message', msg => {
                         )
                     )
                 )
-                .catch(e=>msg.reply("You must provide a valid discord user id." + docs))
+                .catch(()=>msg.reply("You must provide a valid discord user id." + docs))
             }
             else {
                 return msg.reply("You must provide a valid discord user id." + docs)
@@ -175,7 +204,7 @@ Client.on('message', msg => {
                 Client.users.fetch(id).then(Data => 
                     msg.channel.send(Data.displayAvatarURL({format:"png",dynamic:true}))
                 )
-                .catch(e=>msg.reply("You must provide a valid discord user id." + docs))
+                .catch(()=>msg.reply("You must provide a valid discord user id." + docs))
             }
             else {
                 return msg.reply("You must provide a valid discord user id." + docs)
@@ -187,7 +216,7 @@ Client.on('message', msg => {
             if (typeof args[1] == 'undefined') return msg.reply("Command usage error." + docs) // at least 1 arg
 
             var Link = getLink(msg.attachments, args[1])
-            if (!Link) return msg.reply("Attachment missing.")
+            if (!Link) return msg.reply("Image missing.")
 
             if (!config.EXTERNAL_HOSTING) { // if hosting on your own device
                 if (!isCdn(Link)) return msg.reply("Please make sure your link starts with cdn.discordapp.com, or upload your attachment instead.")
@@ -201,15 +230,14 @@ Client.on('message', msg => {
                 if (!validExt(path.extname(Link))) return msg.reply("Invalid image format." + docs)
                 var output = newName(Link)
 
-                async function rotateFunc() { 
-                    let input = await Jimp.read(Link)
+                return (async () => {
+                    let input = await jimp.read(Link)
                     input.rotate(degree).write(output)
                     fs.stat('./' + output, async () => {
                         await msg.channel.send("**Sucessfully rotated " + degree + " degrees! :white_check_mark:**", {files:['./' + output]}).catch(()=>{msg.reply("There was an error uploading your image.")})
                         if (!config.SAVE_IMAGES) fs.unlink(output, function(){}) 
                     })
-                }
-                rotateFunc()
+                })()
             }
             else {
                 return msg.reply("Invalid degree. The degree must be greater than 0 and less than 360." + docs)
@@ -221,7 +249,7 @@ Client.on('message', msg => {
             if (typeof args[1] == 'undefined') return msg.reply("Command usage error." + docs) // at least 1 arg
 
             var Link = getLink(msg.attachments, args[1])
-            if (!Link) return msg.reply("Attachment missing.")
+            if (!Link) return msg.reply("Image missing.")
             if (!config.EXTERNAL_HOSTING) { // if hosting on your own device
                 if (!isCdn(Link)) return msg.reply("Please make sure your link starts with cdn.discordapp.com, or upload your attachment instead.")
             }
@@ -255,8 +283,8 @@ Client.on('message', msg => {
                 if (!validExt(path.extname(Link))) return msg.reply("Invalid image format." + docs)
                 var output = newName(Link)
 
-                async function resizeFunc() { 
-                    let input = await Jimp.read(Link)
+                return (async () => {
+                    let input = await jimp.read(Link)
                     input.resize(res[0], res[1])
                     .quality(50)
                     .write(output)
@@ -264,8 +292,7 @@ Client.on('message', msg => {
                         await msg.channel.send("**Sucessfully resized to " + resolution + "! :white_check_mark:**", {files:['./' + output]}).catch(()=>{msg.reply("There was an error uploading your image.")})
                         if (!config.SAVE_IMAGES) fs.unlink(output, function(){}) 
                     })
-                }
-                resizeFunc()
+                })()
             }
             else {
                 return msg.reply("Invalid dimension(s). Desired side length must be greater than 1 pixel and less than 4096 pixels." + docs)
@@ -276,7 +303,7 @@ Client.on('message', msg => {
             if (typeof args[1] == 'undefined') return msg.reply("Command usage error." + docs) // at least 1 arg
 
             var Link = getLink(msg.attachments, args[1])
-            if (!Link) return msg.reply("Attachment missing.")
+            if (!Link) return msg.reply("Image missing.")
             if (!config.EXTERNAL_HOSTING) { // if hosting on your own device
                 if (!isCdn(Link)) return msg.reply("Please make sure your link starts with cdn.discordapp.com, or upload your attachment instead.")
             }
@@ -303,15 +330,14 @@ Client.on('message', msg => {
                 if (!validExt(path.extname(Link))) return msg.reply("Invalid image format." + docs)
                 var output = newName(Link)
 
-                async function mirrorFunc() { 
-                    let input = await Jimp.read(Link)
+                return (async () => {
+                    let input = await jimp.read(Link)
                     input.mirror(h, v).write(output)
                     fs.stat('./' + output, async () => {
                         await msg.channel.send("**Sucessfully mirrored " + (both?"horizontally and vertically":h?"horizontally":"vertically") + "! :white_check_mark:**", {files:['./' + output]}).catch(()=>{msg.reply("There was an error uploading your image.")})
                         if (!config.SAVE_IMAGES) fs.unlink(output, function(){}) 
                     })
-                }
-                mirrorFunc()
+                })()
             }
             else {
                 return msg.reply("Invalid direction. It must be horizontal, vertical, or both." + docs)
@@ -320,7 +346,7 @@ Client.on('message', msg => {
 
         case "invert":
             var Link = getLink(msg.attachments, args[1])
-            if (!Link) return msg.reply("Attachment missing.")
+            if (!Link) return msg.reply("Image missing.")
             if (!config.EXTERNAL_HOSTING) { // if hosting on your own device
                 if (!isCdn(Link)) return msg.reply("Please make sure your link starts with cdn.discordapp.com, or upload your attachment instead.")
             }
@@ -328,16 +354,15 @@ Client.on('message', msg => {
             if (!validExt(path.extname(Link))) return msg.reply("Invalid image format." + docs)
             var output = newName(Link)
 
-            async function invertFunc() { 
-                let input = await Jimp.read(Link)
+            return (async () => {
+                let input = await jimp.read(Link)
                 input.invert()
                 .write(output)
                 fs.stat('./' + output, async () => {
                     await msg.channel.send("**Sucessfully inverted colors! :white_check_mark:**", {files:['./' + output]}).catch(()=>{msg.reply("There was an error uploading your image.")})
                     if (!config.SAVE_IMAGES) fs.unlink(output, function(){}) 
                 })
-            }
-            return invertFunc()
+            })()
         // image manipulation end
 
         case "rng":
@@ -403,16 +428,14 @@ Client.on('message', msg => {
             .setColor(randColor())
             .setTitle("New Password: Length " + length)
             .setDescription("```" + genString(length) + "```")
-            async function dmEmbed() {
+            return (async () => {
                 var fail = false
-                await msg.author.send(embed).catch(e=>{
+                await msg.author.send(embed).catch(()=>{
                     fail = true
                     msg.reply("I am unable to send you a direct message. Please check your Privacy & Safety settings to allow direct messages from server members.")
                 })
                 if (!fail) msg.reply("Your password has been generated. Check your direct messages from the bot.")
-            }
-            dmEmbed()
-        break
+            })()
 
         case "flip":
         case "coin":
@@ -484,7 +507,7 @@ Client.on('message', msg => {
             })
 
         case "reverse":
-            return msg.channel.send(msg.content.substring(PREFIX.length + "reverse ".length).split('').reverse().join('')).catch(e=>msg.reply("Could not reverse the message."))
+            return msg.channel.send(msg.content.substring(PREFIX.length + "reverse ".length).split('').reverse().join('')).catch(()=>msg.reply("Could not reverse the message."))
 
         case "encode":
             if (msg.content.substring(PREFIX.length + "encode ".length) == "") return msg.reply("String missing." + docs)
@@ -500,10 +523,10 @@ Client.on('message', msg => {
         case "mc":
         case "namemc":
             if (typeof args[1] == 'undefined') return msg.reply("Command usage error." + docs)
-            async function MinecraftLookup() {
+            return (async () => {
                 try {
-                    var idFetch = await getData("https://api.mojang.com/users/profiles/minecraft/" + args[1])
-                    var nameHistory = await getData("https://api.mojang.com/user/profiles/" + idFetch.id + "/names")
+                    var idFetch = await fetchJSON("https://api.mojang.com/users/profiles/minecraft/" + args[1])
+                    var nameHistory = await fetchJSON("https://api.mojang.com/user/profiles/" + idFetch.id + "/names")
 
                     var embed = new Discord.MessageEmbed()
                     .setColor(randColor())
@@ -517,23 +540,22 @@ Client.on('message', msg => {
                 catch (e) {
                     msg.reply("Invalid username.")
                 }
-            }
-            return MinecraftLookup()
+            })()
 
         case "roblox":
             if (typeof args[1] == 'undefined') return msg.reply("Command usage error." + docs)
 
-            async function ROBLOXLookup() {
-                var usernameFetch = await getData("https://api.roblox.com/users/get-by-username/?username=" + args[1])
+            return (async () => {
+                var usernameFetch = await fetchJSON("https://api.roblox.com/users/get-by-username/?username=" + args[1])
                 if (usernameFetch.errorMessage == 'User not found') return msg.reply("Invalid ROBLOX username.")
 
                 var username = usernameFetch.Username
                 var uid = usernameFetch.Id
                 var link = "https://roblox.com/users/" + uid + "/profile"
-                var avatar = await getData("https://thumbnails.roblox.com/v1/users/avatar?userIds=" + uid + "&size=250x250&format=Png&isCircular=false")
-                var headshot = await getData("https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=" + uid + "&size=150x150&format=Png&isCircular=false")
+                var avatar = await fetchJSON("https://thumbnails.roblox.com/v1/users/avatar?userIds=" + uid + "&size=250x250&format=Png&isCircular=false")
+                var headshot = await fetchJSON("https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=" + uid + "&size=150x150&format=Png&isCircular=false")
 
-                var user = await getData("https://api.roblox.com/users/" + uid + "/onlinestatus/")
+                var user = await fetchJSON("https://api.roblox.com/users/" + uid + "/onlinestatus/")
                 var presence = "Last Online "
                 function formatTimestamp(timestamp) {
                     // Example Timestamp: 2006-02-27T00:00:01.OTHERINFORMATION
@@ -545,16 +567,16 @@ Client.on('message', msg => {
                 }
                 user.IsOnline ? presence = user.LastLocation : presence += formatTimestamp(user.LastOnline).join(' at ') + " EST"
 
-                var joinTS = await getData("https://users.roblox.com/v1/users/" + uid)
+                var joinTS = await fetchJSON("https://users.roblox.com/v1/users/" + uid)
                 var desc = joinTS.description
                 if (desc == "") desc = "No description provided."
 
                 var joinDate = formatTimestamp(joinTS.created).join(' at ')
 
-                var status = await getData("https://users.roblox.com/v1/users/" + uid + "/status")
+                var status = await fetchJSON("https://users.roblox.com/v1/users/" + uid + "/status")
                 status.status == "" ? status = "No status provided." : status = status.status
 
-                var history = await getData("https://users.roblox.com/v1/users/" + uid + "/username-history?sortOrder=Asc")
+                var history = await fetchJSON("https://users.roblox.com/v1/users/" + uid + "/username-history?sortOrder=Asc")
                 var nameList = []
                 if (!joinTS.isBanned) { // banned users don't show past names
                     for (var i = 0; i < history.data.length; i ++) nameList.push(history.data[i].name)
@@ -578,8 +600,7 @@ Client.on('message', msg => {
                 if (!joinTS.isBanned) embed.addFields({name:"Past Usernames", value:nameList})
                 embed.setImage(avatar.data[0].imageUrl)
                 msg.channel.send(embed)
-            }
-            return ROBLOXLookup()
+            })()
         
         case "debug":
         case "debugmode":
@@ -598,7 +619,7 @@ Client.on('message', msg => {
                 return msg.channel.send(embed)
             }
             else {
-                return msg.reply("You are not authorized to use the command " + args[0] + ".")
+                return msg.reply("You are not authorized to use the command \'" + args[0] + "\'.")
             }
         
         case "saveimages":
@@ -616,7 +637,211 @@ Client.on('message', msg => {
                 return msg.channel.send(embed)
             }
             else {
-                return msg.reply("You are not authorized to use the command " + args[0] + ".")
+                return msg.reply("You are not authorized to use the command \'" + args[0] + "\'.")
             }
+
+        case "external":
+            if (config.DEBUGGERS.includes(msg.author.id)) {
+                config.EXTERNAL_HOSTING = !config.EXTERNAL_HOSTING
+                var embed = new Discord.MessageEmbed()
+                .setColor(randColor())
+                .setTitle("Accepting External Images Status")
+                if (config.SAVE_IMAGES) {
+                    embed.setDescription("Accepting external images is now on, as requested by <@!" + msg.author.id + ">. The bot now accepts images from all domains.")
+                }
+                else {
+                    embed.setDescription("Accepting external images is now off, as requested by <@!" + msg.author.id + ">. The bot will no longer accept images from domains other than cdn.discordapp.com.")
+                }
+                return msg.channel.send(embed)
+            }
+            else {
+                return msg.reply("You are not authorized to use the command \'" + args[0] + "\'.")
+            }
+
+        case "ip":
+        case "ipinfo":
+        case "website":
+        case "websiteinfo":
+            if (typeof args[1] == 'undefined') return msg.reply("Command usage error." + docs)
+
+            var Link = getDomain(args[1])
+            if (!Link) return msg.reply("Invalid URL / IP." + docs)
+
+            return (async () => {
+                var statusMessage = await msg.channel.send("Launching Chromium...").catch(()=>{})
+                const browser = await chromium.launch();
+                var ipv6 = false
+                statusMessage.edit("Checking if it is an IPv6 address...").catch(()=>{})
+                const page = await browser.newPage();
+                if (Link.includes(":")) { // db-ip.com shows more accurate information of ipv6 addresses, it also works with ipv4 but the ipgeolocation.io is more detailed with ipv4
+                    await page.goto('https://db-ip.com/' + Link.replace("/:/g", "%3A"), {waitUntil: 'load'}) // how ipv6 is handled as a query
+                    const error404 = await page.evaluate(() => {
+                        return document.getElementsByClassName("main")[0].innerHTML // existent regardless if the ip exists or not, just the message is different
+                    })
+                    if (error404 != "404 Not Found") ipv6 = true
+                }
+                statusMessage.edit(ipv6? "IPv6 Address detected. Visiting alternative page...":"IPv6 address not detected. Accessing ipgeolocation.io...").catch(()=>{})
+                if (ipv6) {
+                    await page.goto('https://db-ip.com/' + Link.replace("/:/g", "%3A"), {waitUntil: 'load'})
+                    statusMessage.edit("IPv6 information loaded. Evaluating contents...").catch(()=>{})
+                    const main = await page.evaluate(() => {
+                        return document.getElementsByClassName("table light")[2].innerHTML
+                    })
+                    var mainTable = main.split("<th>")
+
+                    const ISP = await page.evaluate(() => {
+                        return document.getElementsByClassName("table light")[0].innerHTML
+                    })
+                    var ISPTable = ISP.split("<th>")
+
+                    var lookingFor = ["Country", "State / Region", "District / County", "Zip / Postal code", "Coordinates", "ISP"]
+                    var ipv6Information = []
+                    for (var i = 0; i < mainTable.length; i++) {
+                        lookingFor.forEach(function(value) {
+                            if (mainTable[i].startsWith(value)) {
+                                var found = mainTable[i]
+                                found = found.split("<td>")[1]
+                                if (found.includes("country")) {
+                                    var Index = found.indexOf(">") + 1
+                                    found = found.substring(Index, found.indexOf("<", Index))
+                                }
+                                else {
+                                    found = found.substring(0, found.indexOf("<")) // to get the text field
+                                }
+                                found = found.replace("amp;", "").replace("\n", "") // remove miscellaneous characters
+                                ipv6Information.push(found.endsWith(" ")? found.substring(0, found.length - 1):found)
+                            }
+                        })
+                    }
+                    for (var i = 0; i < ISPTable.length; i++) {
+                        if (ISPTable[i].startsWith("ISP")) {
+                            var found = ISPTable[i]
+                            found = found.split("<td>")[1]
+                            found = found.substring(0, found.indexOf("<")) // to get the text field
+                            found = found.replace("amp;", "") // remove miscellaneous characters
+                            ipv6Information.push(found) // less exceptions for just the ISP field
+                        }
+                    }
+
+                    statusMessage.delete().catch(()=>{})
+
+                    var embed = new Discord.MessageEmbed()
+                    .setColor(randColor())
+                    .setTitle("IPv6 Information")
+
+                    for (var i = 0; i < lookingFor.length; i++) {
+                        var header = lookingFor[i]
+                        var text = ipv6Information[i]
+                        if (header.length > 0 && text.length > 0) // embed fields cannot be empty, won't hurt
+                            embed.addFields({name:header, value:text})
+                    }
+                    msg.channel.send(embed)
+                }
+                else {
+                    await page.goto('https://ipgeolocation.io/browse/ip/' + Link, {waitUntil: 'load'}) // make sure the link is correct!
+                    statusMessage.edit("IP information loaded. Evaluating contents...").catch(()=>{})
+                    const body = await page.evaluate(() => {
+                        if (document.getElementsByClassName("serverMessageBox").length > 0) return null // will show if url is invalid
+                        if (document.getElementById("ipInfoTable").length < 1) return 0 // won't show if innerHTML is missing, only happened to me once
+                        return document.getElementById("ipInfoTable").innerHTML
+                    })
+                    if (body == 0) {
+                        statusMessage.delete().catch(()=>{})
+                        msg.reply("ERROR: Missing innerHTML.")
+                    }
+                    else if (body) {
+                        statusMessage.edit("Resolving hostname...").catch(()=>{})
+                        await page.goto('https://www.ip-tracker.org/locator/ip-lookup.php?ip=' + Link, {waitUntil: 'load'})
+                        const hostname = await page.evaluate(()=> {
+                            if (document.getElementsByClassName("lookupredempty").length > 0) return null // will show if url is invalid
+                            if (document.getElementsByClassName("table-auto").length < 1) return null // can never hurt
+                            return document.getElementsByClassName("table-auto")[0].innerHTML
+                        })
+                        var realHostname = ""
+                        if (hostname) {
+                            var trackingInfo = hostname.split("<th>")
+                            trackingInfo.forEach(function(tracker) { 
+                                if (tracker.startsWith("Hostname")) {
+                                    var index = tracker.indexOf("tracking")
+                                    realHostname = tracker.substring(index + "tracking\">".length, tracker.indexOf("</td"))
+                                }
+                            })
+                            var ipTable = body.split("<td>")
+                            var lookingFor = ["IP", "Hostname", "Continent Name", "Country Name", "State/Province", "District/County", "Zip Code", "Latitude", "ISP"]
+                            var ipInformation = []
+                            for (var i = 0; i < ipTable.length; i++) {
+                                lookingFor.forEach(function(value) {
+                                    if (ipTable[i].startsWith(value)) {
+                                        if (value == "Hostname") return ipInformation.push(hostname?realHostname:Link) //hostname?hostname:Link
+                                        ipInformation.push(ipTable[i + 1].split("<")[0].replace("amp;", ""))
+                                    }
+                                })
+                            }
+                            statusMessage.delete().catch(()=>{})
+    
+                            var embed = new Discord.MessageEmbed()
+                            .setColor(randColor())
+                            .setTitle("Website / IP Information")
+    
+                            for (var i = 0; i < lookingFor.length; i++) {
+                                var header = lookingFor[i]
+                                var text = ipInformation[i]
+                                if (header == "Latitude") header += " & Longitude"
+                                if (header.length > 0 && text.length > 0) // embed fields cannot be empty, sometimes district/county won't show
+                                    embed.addFields({name:header, value:text})
+                            }
+                            msg.channel.send(embed)
+                        }
+                        else {
+                            statusMessage.delete().catch(()=>{})
+                            msg.reply("Invalid URL." + docs)
+                        }
+                    }
+                    else {
+                        statusMessage.delete().catch(()=>{})
+                        msg.reply("Invalid URL." + docs)
+                    }
+                }
+                browser.close();
+            })()
+
+        case "whois":
+            if (typeof args[1] == 'undefined') return msg.reply("Command usage error." + docs)
+
+            var Link = getDomain(args[1])
+            if (!Link) return msg.reply("Invalid URL / IP." + docs)
+
+            return (async () => {
+                var statusMessage = await msg.channel.send("Launching Chromium...").catch(()=>{})
+                const browser = await chromium.launch();
+                statusMessage.edit("Accessing page...").catch(()=>{})
+                const page = await browser.newPage();
+                const search = 'https://www.ip-tracker.org/lookup/whois-lookup.php?query=' + Link
+                await page.goto(search, {waitUntil: 'load'});
+                statusMessage.edit("WHOIS loaded. Evaluating contents...").catch(()=>{})
+                var body = await page.evaluate(() => {
+                    if (document.getElementsByClassName("it").length < 1) return null
+                    return document.getElementsByClassName("it")[0].innerHTML
+                })
+                if (body) {
+                    statusMessage.delete().catch(()=>{})
+
+                    var embed = new Discord.MessageEmbed()
+                    .setColor(randColor())
+                    .setTitle("WHOIS Information")
+                    if (body.length > 2045) {
+                        embed.setFooter("View full page: " + search)
+                        body = body.substring(0, 2045) + "..."
+                    }
+                    embed.setDescription(body)
+
+                    msg.channel.send(embed)
+                }
+                else {
+                    statusMessage.delete().catch(()=>{})
+                    msg.reply("Invalid URL." + docs)
+                }
+                browser.close();
+            })()
     }
 })

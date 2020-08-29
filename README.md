@@ -132,6 +132,18 @@ Displays information about a ROBLOX user.
 
 ```roblox {username}```
 
+### website
+Displays information about a website or IP.
+
+```website {website/ip}```
+
+*Aliases: websiteinfo, ip, ipinfo*
+
+### whois
+Displays information about a WHOIS lookup for a specified domain.
+
+```whois {website}```
+
 ## Restricted commands
 These commands are restricted to whitelisted user IDs labeled as DEBUGGERS in the config file.
 
@@ -143,7 +155,13 @@ Toggles the debugging mode, which restricts access to whitelisted debuggers.
 ### saveimages
 Toggles saving images. If an upload error occurs, the image is still stored locally.
 
+### external
+Toggles accepting images from domains other than cdn.discordapp.com.
+
 ## Installation
-- Obtain a Discord bot token over at https://discord.com/developers
-- Put your bot token in .env next to BOT_TOKEN.
+- Create a new application: https://discord.com/developers/applications
+- Create the bot invite link: https://discordapi.com/permissions.html
+- Invite the bot to a server that you want it to be in.
+- Put your bot token in the BOT_TOKEN field located in the .env file.
 - Modify the config.json file to fit your needs. Add your whitelisted guild IDs and such. Debug/saveimages commands won't write to the JSON file, but the config will have the default options once the bot restarts.
+Please note the bot requires a restart before joining a newly whitelisted guild.

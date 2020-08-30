@@ -6,8 +6,8 @@ const config = require("../config")
 Client.login(process.env.BOT_TOKEN)
 
 Client.on('ready', () => {
-    Client.user.setActivity((config.DEBUGGING? "DEBUGGING | ":"") + PREFIX + "help", {type:"PLAYING"})
-    console.log("Server count: " + Client.guilds.cache.size)
+    Client.user.setActivity(`${(config.DEBUGGING? "DEBUGGING | ":"")}${PREFIX}help`, {type:"PLAYING"})
+    console.log(`Server count: ${Client.guilds.cache.size}`)
     Client.guilds.cache.forEach(g => {
         console.log(g.id)
         if (!config.GUILDS.includes(g.id)){ // if not whitelisted
@@ -37,11 +37,6 @@ async function fetchJSON(url) {
     return response.json()
 }
 
-function randColor() { // better colors for the embeds
-    var colors = ["AQUA","GREEN","BLUE","PURPLE","GOLD","ORANGE","RED","DARK_PURPLE","DARK_GOLD","LUMINOUS_VIVID_PINK","DARK_VIVID_PINK"]
-    return colors[Math.floor(Math.random() * colors.length)]
-}
-
 function formatID(id) {
     // input: discord user id
     // returns it fixed if it's a mention: <@!uid> --> uid
@@ -62,8 +57,10 @@ function getLink(attachments, arg) {
         // console.log(msg.attachments)
         return `${attachments.first().url}`
     }
-    else if (fixLink(arg).startsWith('http')) { // uses arg if attachment is not present
-        return arg
+    else { // uses arg if attachment is not present
+        if (arg) {
+            if (fixLink(arg).startsWith('http')) return arg
+        }
     }
     return null
 }
@@ -93,7 +90,7 @@ function newName(Link) {
     Link = fixLink(Link)
     var slashSplit = Link.split("/") // the name.extension is after the final slash
     var baseName = slashSplit[slashSplit.length - 1].split(".")[0] // name of the original file
-    return baseName + "-" + crypto.randomBytes(2).toString('hex') + ".png"
+    return `${baseName}-${crypto.randomBytes(2).toString('hex')}.png`
 }
 
 function validExt(ext) {
@@ -110,7 +107,7 @@ function formatTime(ms) { // converts time from milliseconds because discord.js 
     var hours = Math.floor((ms/3600000) % 24)
     var minutes = Math.floor((ms/60000) % 60)
     var seconds = ((ms % 60000) / 1000).toFixed(0)
-    return days + " days, " + hours + " hours, " + minutes + " minutes, " + seconds + " seconds"
+    return `${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds`
 }
 
 const docs = " Documentation: https://github.com/mt60395/discordjs-bot/blob/master/README.md"
@@ -122,18 +119,14 @@ Client.on('message', msg => {
     var args = msg.content.substring(PREFIX.length).split(" ") // only use after the prefix
     switch(args[0]) {
         case "help":
-        case "h":
         case "cmds":
-            var embed = new Discord.MessageEmbed()
-            .setColor(randColor())
-            .setTitle("Commands and documentation")
-            .setDescription("https://github.com/mt60395/discordjs-bot/blob/master/README.md")
-            return msg.channel.send(embed)
+        case "docs":
+            return msg.channel.send("https://github.com/mt60395/discordjs-bot/blob/master/README.md")
 
         case "status":
         case "uptime":
             var embed = new Discord.MessageEmbed()
-            .setColor(randColor())
+            .setColor("BLUE")
             .setTitle("Current Status")
             .addFields(
                 {name:"Uptime", value:formatTime(Client.uptime)},
@@ -145,7 +138,7 @@ Client.on('message', msg => {
 
         case "info":
             var embed = new Discord.MessageEmbed()
-            .setColor(randColor())
+            .setColor("BLUE")
             .setTitle("Bot Information")
             .addFields(
                 {name:"Creator", value:"https://github.com/mt60395/"},
@@ -159,10 +152,10 @@ Client.on('message', msg => {
             var id = formatID(typeof args[1] == 'undefined'? msg.author.id:args[1])
             // if id is not explicitly stated then use the message sender's id
             if (Number(id) > 0 && (id.length == 18)) {
-                Client.users.fetch(id).then(Data => 
+                return Client.users.fetch(id).then(Data => 
                     msg.channel.send(embed = new Discord.MessageEmbed()
-                        .setColor(randColor())
-                        .setAuthor(Data.username + "#" + Data.discriminator, Data.displayAvatarURL({format:"png",dynamic:true}))
+                        .setColor("BLUE")
+                        .setAuthor(`${Data.username}#${Data.discriminator}`, Data.displayAvatarURL({format:"png",dynamic:true}))
                         .setTitle("User Information")
                         .addFields(
                             {name:"Username", value:Data.username},
@@ -174,18 +167,18 @@ Client.on('message', msg => {
                         )
                     )
                 )
-                .catch(()=>msg.reply("You must provide a valid discord user id." + docs))
+                .catch(()=>msg.reply(`You must provide a valid discord user id.${docs}`))
             }
             else {
-                return msg.reply("You must provide a valid discord user id." + docs)
+                return msg.reply(`You must provide a valid discord user id.${docs}`)
             }
-        break
 
         case "server":
         case "serverinfo":
             var guild = msg.guild
+            if (!guild) return msg.reply("You must use this command in a server.")
             var embed = new Discord.MessageEmbed()
-            .setColor(randColor())
+            .setColor("BLUE")
             .setTitle("Server Information")
             .setThumbnail(guild.iconURL({format:"png",dynamic:true}))
             .addFields(
@@ -201,58 +194,55 @@ Client.on('message', msg => {
         case "avatar":
             var id = formatID(typeof args[1] == 'undefined'? msg.author.id:args[1])
             if (Number(id) > 0 && (id.length == 18)) {
-                Client.users.fetch(id).then(Data => 
+                return Client.users.fetch(id).then(Data => 
                     msg.channel.send(Data.displayAvatarURL({format:"png",dynamic:true}))
                 )
-                .catch(()=>msg.reply("You must provide a valid discord user id." + docs))
+                .catch(()=>msg.reply(`You must provide a valid discord user id.${docs}`))
             }
             else {
-                return msg.reply("You must provide a valid discord user id." + docs)
+                return msg.reply(`You must provide a valid discord user id.${docs}`)
             }
-        break
 
         // image manipulation start
         case "rotate":
-            if (typeof args[1] == 'undefined') return msg.reply("Command usage error." + docs) // at least 1 arg
+            if (typeof args[1] == 'undefined') return msg.reply(`Command usage error.${docs}`) // at least 1 arg
 
             var Link = getLink(msg.attachments, args[1])
             if (!Link) return msg.reply("Image missing.")
 
-            if (!config.EXTERNAL_HOSTING) { // if hosting on your own device
+            if (!config.EXTERNAL_HOSTING) // if hosting on your own device
                 if (!isCdn(Link)) return msg.reply("Please make sure your link starts with cdn.discordapp.com, or upload your attachment instead.")
-            }
 
             var degree
             msg.attachments.size > 0 ? degree = Number(args[1]):degree = Number(args[2])
             // only argument is the direction (attachment provided) or 2 arguments, and first is a link so the second is the direction
 
             if (degree > 0 && degree < 360) { // Degree Number must be greater than 0, NaN is denied
-                if (!validExt(path.extname(Link))) return msg.reply("Invalid image format." + docs)
+                if (!validExt(path.extname(Link))) return msg.reply(`Invalid image format.${docs}`)
                 var output = newName(Link)
 
                 return (async () => {
                     let input = await jimp.read(Link)
                     input.rotate(degree).write(output)
                     fs.stat('./' + output, async () => {
-                        await msg.channel.send("**Sucessfully rotated " + degree + " degrees! :white_check_mark:**", {files:['./' + output]}).catch(()=>{msg.reply("There was an error uploading your image.")})
+                        await msg.channel.send(`**Sucessfully rotated ${degree} degrees! :white_check_mark:**`, {files:['./' + output]})
+                        .catch(()=>{msg.reply("There was an error uploading your image.")})
                         if (!config.SAVE_IMAGES) fs.unlink(output, function(){}) 
                     })
                 })()
             }
             else {
-                return msg.reply("Invalid degree. The degree must be greater than 0 and less than 360." + docs)
+                return msg.reply(`Invalid degree. The degree must be greater than 0 and less than 360.${docs}`)
             }
-        break
 
         case "resize":
         case "stretch":
-            if (typeof args[1] == 'undefined') return msg.reply("Command usage error." + docs) // at least 1 arg
+            if (typeof args[1] == 'undefined') return msg.reply(`Command usage error.${docs}`) // at least 1 arg
 
             var Link = getLink(msg.attachments, args[1])
             if (!Link) return msg.reply("Image missing.")
-            if (!config.EXTERNAL_HOSTING) { // if hosting on your own device
+            if (!config.EXTERNAL_HOSTING) // if hosting on your own device
                 if (!isCdn(Link)) return msg.reply("Please make sure your link starts with cdn.discordapp.com, or upload your attachment instead.")
-            }
 
             var resolution
             var resolutionY = "" // for people that prefer spaces between dimension
@@ -271,16 +261,18 @@ Client.on('message', msg => {
             var res = resolution.split("x") // res[0] is x, res[1] is y
             if (resolutionY) {
                 res = [resolution, resolutionY]
-                resolution = resolution + "x" + resolutionY // for the success message
+                resolution = `${resolution}x${resolutionY}` // for the success message
             }
 
             // resolution/dimension validity checks
             res[0] = Number(res[0]); res[1] = Number(res[1])
-            var bool = res[0] > 1 && res[0] <= 4096, bool2 = res[1] > 1 && res[1] <= 4096 // 1 pixel isn't clickable on Discord and you don't want more than 4k
-            var bool3 = Number.isInteger(res[0]), bool4 = Number.isInteger(res[1]) // JIMP errors with non integers
+            var bool = res[0] > 1 && res[0] <= 4096 // 1 pixel isn't clickable on Discord and you don't want more than 4k
+            var bool2 = res[1] > 1 && res[1] <= 4096
+            var bool3 = Number.isInteger(res[0])
+            var bool4 = Number.isInteger(res[1]) // JIMP errors with non integers
 
             if (bool && bool2 && bool3 && bool4){
-                if (!validExt(path.extname(Link))) return msg.reply("Invalid image format." + docs)
+                if (!validExt(path.extname(Link))) return msg.reply(`Invalid image format.${docs}`)
                 var output = newName(Link)
 
                 return (async () => {
@@ -289,30 +281,29 @@ Client.on('message', msg => {
                     .quality(50)
                     .write(output)
                     fs.stat('./' + output, async () => {
-                        await msg.channel.send("**Sucessfully resized to " + resolution + "! :white_check_mark:**", {files:['./' + output]}).catch(()=>{msg.reply("There was an error uploading your image.")})
+                        await msg.channel.send(`**Sucessfully resized to ${resolution}! :white_check_mark:**`, {files:['./' + output]})
+                        .catch(()=>{msg.reply("There was an error uploading your image.")})
                         if (!config.SAVE_IMAGES) fs.unlink(output, function(){}) 
                     })
                 })()
             }
             else {
-                return msg.reply("Invalid dimension(s). Desired side length must be greater than 1 pixel and less than 4096 pixels." + docs)
+                return msg.reply(`Invalid dimension(s). Desired side length must be greater than 1 pixel and less than 4096 pixels.${docs}`)
             }
-        break
 
         case "mirror":
-            if (typeof args[1] == 'undefined') return msg.reply("Command usage error." + docs) // at least 1 arg
+            if (typeof args[1] == 'undefined') return msg.reply(`Command usage error.${docs}`) // at least 1 arg
 
             var Link = getLink(msg.attachments, args[1])
             if (!Link) return msg.reply("Image missing.")
-            if (!config.EXTERNAL_HOSTING) { // if hosting on your own device
+            if (!config.EXTERNAL_HOSTING) // if hosting on your own device
                 if (!isCdn(Link)) return msg.reply("Please make sure your link starts with cdn.discordapp.com, or upload your attachment instead.")
-            }
 
             var dir = ""
             msg.attachments.size > 0 ? dir = args[1]:dir = args[2]
             // only argument is the direction (attachment provided) or 2 arguments, and first is a link so the second is the direction
 
-            if (typeof dir == 'undefined') return msg.reply("Invalid direction. It must be horizontal, vertical, or both." + docs)
+            if (typeof dir == 'undefined') return msg.reply(`Invalid direction. It must be horizontal, vertical, or both.${docs}`)
 
             var validDir = false, h = false, v = false, both = false // variable both is for the message reply, other vars are for direction/validity checking
             switch(dir.toLowerCase()) { // checks if the direction is valid
@@ -322,36 +313,35 @@ Client.on('message', msg => {
                 case "v":case "vertical":
                     validDir = true; v = true
                 break
-                case "both":
+                case "both":case"b":case"vh":case"hv":
                     validDir = true; both = true; h = true; v = true
             }
 
             if (validDir) {
-                if (!validExt(path.extname(Link))) return msg.reply("Invalid image format." + docs)
+                if (!validExt(path.extname(Link))) return msg.reply(`Invalid image format.${docs}`)
                 var output = newName(Link)
 
                 return (async () => {
                     let input = await jimp.read(Link)
                     input.mirror(h, v).write(output)
                     fs.stat('./' + output, async () => {
-                        await msg.channel.send("**Sucessfully mirrored " + (both?"horizontally and vertically":h?"horizontally":"vertically") + "! :white_check_mark:**", {files:['./' + output]}).catch(()=>{msg.reply("There was an error uploading your image.")})
+                        await msg.channel.send(`**Sucessfully mirrored ${(both?"horizontally and vertically":h?"horizontally":"vertically")}! :white_check_mark:**`, {files:['./' + output]})
+                        .catch(()=>{msg.reply("There was an error uploading your image.")})
                         if (!config.SAVE_IMAGES) fs.unlink(output, function(){}) 
                     })
                 })()
             }
             else {
-                return msg.reply("Invalid direction. It must be horizontal, vertical, or both." + docs)
+                return msg.reply(`Invalid direction. It must be horizontal, vertical, or both.${docs}`)
             }
-        break
 
         case "invert":
             var Link = getLink(msg.attachments, args[1])
             if (!Link) return msg.reply("Image missing.")
-            if (!config.EXTERNAL_HOSTING) { // if hosting on your own device
+            if (!config.EXTERNAL_HOSTING) // if hosting on your own device
                 if (!isCdn(Link)) return msg.reply("Please make sure your link starts with cdn.discordapp.com, or upload your attachment instead.")
-            }
 
-            if (!validExt(path.extname(Link))) return msg.reply("Invalid image format." + docs)
+            if (!validExt(path.extname(Link))) return msg.reply(`Invalid image format.${docs}`)
             var output = newName(Link)
 
             return (async () => {
@@ -359,7 +349,8 @@ Client.on('message', msg => {
                 input.invert()
                 .write(output)
                 fs.stat('./' + output, async () => {
-                    await msg.channel.send("**Sucessfully inverted colors! :white_check_mark:**", {files:['./' + output]}).catch(()=>{msg.reply("There was an error uploading your image.")})
+                    await msg.channel.send("**Sucessfully inverted colors! :white_check_mark:**", {files:['./' + output]})
+                    .catch(()=>{msg.reply("There was an error uploading your image.")})
                     if (!config.SAVE_IMAGES) fs.unlink(output, function(){}) 
                 })
             })()
@@ -369,7 +360,7 @@ Client.on('message', msg => {
             if (typeof args[1] == 'undefined' || typeof args[2] == 'undefined')
                 return msg.reply(Math.floor(Math.random() * 2000000 - 1000000))
             var num = Number(args[1]), num2 = Number(args[2])
-            if (isNaN(num) || isNaN(num2)) return msg.reply("Invalid number detected." + docs)
+            if (isNaN(num) || isNaN(num2)) return msg.reply(`Invalid number detected.${docs}`)
             var floatFlag // if a float is detected then the number will not floor
             if (!Number.isInteger(num) || !Number.isInteger(num2)) {
                 floatFlag = true
@@ -399,9 +390,9 @@ Client.on('message', msg => {
             }
 
         case "choose":
-            if (typeof args[1] == 'undefined' || typeof args[2] == 'undefined') return msg.reply("Command usage error." + docs) // at least 2 args
+            if (typeof args[1] == 'undefined' || typeof args[2] == 'undefined') return msg.reply(`Command usage error.${docs}`) // at least 2 args
             var choices = msg.content.substring(PREFIX.length + "choose ".length).split(" | ")
-            if (choices.length < 2) return msg.reply("At least 2 choices must be separated by vertical lines | with spaces." + docs)
+            if (choices.length < 2) return msg.reply(`At least 2 choices must be separated by vertical lines | with spaces.${docs}`)
             return msg.reply(choices[Math.floor(Math.random() * (choices.length))])
 
         case "gen":
@@ -414,7 +405,7 @@ Client.on('message', msg => {
                     length = Math.floor(Number(args[1])) // maximum length is 2042 to have proper formatting for discord
                 } // who has passwords that long anyways???
                 else {
-                    return msg.reply("Invalid number. The integer must be less than 2043 and greater than 0." + docs)
+                    return msg.reply(`Invalid number. The integer must be less than 2043 and greater than 0.${docs}`)
                 }
             }
 
@@ -425,16 +416,16 @@ Client.on('message', msg => {
             }
 
             var embed = new Discord.MessageEmbed()
-            .setColor(randColor())
+            .setColor("BLUE")
             .setTitle("New Password: Length " + length)
             .setDescription("```" + genString(length) + "```")
             return (async () => {
                 var fail = false
                 await msg.author.send(embed).catch(()=>{
                     fail = true
-                    msg.reply("I am unable to send you a direct message. Please check your Privacy & Safety settings to allow direct messages from server members.")
+                    msg.reply("I am unable to send you a direct message. Please check your Privacy & Safety settings to allow direct messages from server members. https://i.imgur.com/HMHoPPD.png")
                 })
-                if (!fail) msg.reply("Your password has been generated. Check your direct messages from the bot.")
+                if (!fail && msg.guild) msg.reply("Your password has been generated. Check your direct messages from the bot.")
             })()
 
         case "flip":
@@ -442,34 +433,16 @@ Client.on('message', msg => {
         case "conflip":
             return Math.random() * 2 == 0 ? msg.reply("Heads."):msg.reply("Tails.")
 
-        case "8ball": // https://en.wikipedia.org/wiki/Magic_8-Ball#Possible_answers
-            var num = Math.floor(Math.random() * 4) // 20 possible answers but chances for each type are 2/4, 1/4, and 1/4
-            ans = []
-            switch(num) {
-                case 0:
-                case 1: // positive cases are 2/4 chance or 50%
-                    ans = ["It is certain.", "It is decidedly so.", "Without a doubt.", "Yes - definitely.", "You may rely on it.", "As I see it, yes.", "Most likely.", "Outlook good.", "Yes.", "Signs point to yes."]
-                break
-
-                case 2: // non-committal or uncertain cases
-                    ans = ["Reply hazy, try again.", "Ask again later.", "Better not tell you now.", "Cannot predict now.", "Concentrate and ask again."]
-                break
-
-                default: // negative cases
-                    ans = ["Don't count on it.", "My reply is no.", "My sources say no.", "Outlook not so good.", "Very doubtful."]
-            }
-            return msg.reply(ans[Math.floor(Math.random() * ans.length)])
-
         case "poll":
-            if (typeof args[1] == 'undefined') return msg.reply("Command usage error." + docs) // at least 1 arg
+            if (typeof args[1] == 'undefined') return msg.reply(`Command usage error.${docs}`) // at least 1 arg
             var choices = false
             var question = ""
             if (!isNaN(Number(args[1]))) { // use numbers instead of check or x and parse the question accordingly
                 choices = Math.floor(Number(args[1]))
                 if (choices > 9 || choices < 1) {
-                    msg.delete()
+                    msg.delete().catch(()=>{})
                     return msg.reply("Number must be less than 10 and greater than 0.").then(newMsg => {
-                        setTimeout(function() {newMsg.delete()}, 1500)
+                        setTimeout(function() {newMsg.delete().catch(()=>{})}, 1500)
                     })
                 }
                 question = msg.content.substring(PREFIX.length + "poll 1 ".length) // example command, question will be after these arguments
@@ -478,31 +451,31 @@ Client.on('message', msg => {
                 question = msg.content.substring(PREFIX.length + "poll ".length)
             }
             
-            msg.delete()
+            msg.delete().catch(()=>{})
             var embed = new Discord.MessageEmbed()
-            .setColor(randColor())
+            .setColor("BLUE")
             .setTitle("Poll: " + question)
-            .setDescription((choices? "React to the appropriate choice number.\n":"") + "Poll created by " + "<@!" + msg.author.id + ">")
+            .setDescription(`${(choices? "React to the appropriate choice number.\n":"")}Poll created by <@!${msg.author.id}>`)
             return msg.channel.send(embed).then(toReact => {
                 if (choices) {
                     for (var num = 1; num <= choices; num++) {
                         switch(num) {
-                            case 1: return toReact.react("1️⃣")
-                            case 2: return toReact.react("2️⃣")
-                            case 3: return toReact.react("3️⃣")
-                            case 4: return toReact.react("4️⃣")
-                            case 5: return toReact.react("5️⃣")
-                            case 6: return toReact.react("6️⃣")
-                            case 7: return toReact.react("7️⃣")
-                            case 8: return toReact.react("8️⃣")
-                            case 9: return toReact.react("9️⃣")
+                            case 1: toReact.react("1️⃣").catch(()=>{}); break
+                            case 2: toReact.react("2️⃣").catch(()=>{}); break
+                            case 3: toReact.react("3️⃣").catch(()=>{}); break
+                            case 4: toReact.react("4️⃣").catch(()=>{}); break
+                            case 5: toReact.react("5️⃣").catch(()=>{}); break
+                            case 6: toReact.react("6️⃣").catch(()=>{}); break
+                            case 7: toReact.react("7️⃣").catch(()=>{}); break
+                            case 8: toReact.react("8️⃣").catch(()=>{}); break
+                            case 9: toReact.react("9️⃣").catch(()=>{})
                         }
                     }
                 }
                 else {
-                    toReact.react("✅")
-                    toReact.react("❌")
-                    toReact.react("🤷")
+                    toReact.react("✅").catch(()=>{})
+                    toReact.react("❌").catch(()=>{})
+                    toReact.react("🤷").catch(()=>{})
                 }
             })
 
@@ -510,30 +483,33 @@ Client.on('message', msg => {
             return msg.channel.send(msg.content.substring(PREFIX.length + "reverse ".length).split('').reverse().join('')).catch(()=>msg.reply("Could not reverse the message."))
 
         case "encode":
-            if (msg.content.substring(PREFIX.length + "encode ".length) == "") return msg.reply("String missing." + docs)
-            var b = new Buffer(msg.content.substring(PREFIX.length + "encode ".length))
-            if (b.toString('base64').length > 2000) return msg.reply("String too long. Head to https://www.base64encode.org/ to encrypt longer strings.")
-            return msg.channel.send(b.toString('base64'))
+            var toEncode = msg.content.substring(PREFIX.length + "encode ".length)
+            if (toEncode == "") return msg.reply(`String missing.${docs}`)
+            var encoded = Buffer.from(toEncode)
+            if (encoded.toString('base64').length > 2000) return msg.reply("String too long. Head to https://www.base64encode.org/ to encrypt longer strings.")
+            return msg.channel.send(encoded.toString('base64'))
         case "decode":
-            if (msg.content.substring(PREFIX.length + "decode ".length) == "") return msg.reply("String missing." + docs)
-            var b = new Buffer(msg.content.substring(PREFIX.length + "decode ".length), 'base64')
-            return msg.channel.send(b.toString())
+            var toDecode = msg.content.substring(PREFIX.length + "decode ".length)
+            if (toDecode == "") return msg.reply(`String missing.${docs}`)
+            var decoded = Buffer.from(toDecode, 'base64')
+            if (decoded.toString().length < 1) return msg.reply("Could not decode the string.")
+            return msg.channel.send(decoded.toString())
 
         case "minecraft":
         case "mc":
         case "namemc":
-            if (typeof args[1] == 'undefined') return msg.reply("Command usage error." + docs)
+            if (typeof args[1] == 'undefined') return msg.reply(`Command usage error.${docs}`)
             return (async () => {
                 try {
-                    var idFetch = await fetchJSON("https://api.mojang.com/users/profiles/minecraft/" + args[1])
-                    var nameHistory = await fetchJSON("https://api.mojang.com/user/profiles/" + idFetch.id + "/names")
+                    var idFetch = await fetchJSON(`https://api.mojang.com/users/profiles/minecraft/${args[1]}`)
+                    var nameHistory = await fetchJSON(`https://api.mojang.com/user/profiles/${idFetch.id}/names`)
 
                     var embed = new Discord.MessageEmbed()
-                    .setColor(randColor())
+                    .setColor("BLUE")
                     .setTitle("Minecraft User Information")
                     .addFields({name:nameHistory[0].name, value:"Original Username"})
                     for (var i = 1; i < nameHistory.length; i++) {
-                        embed.addFields({name:nameHistory[i].name, value:"Changed on " + new Date(nameHistory[i].changedToAt)})
+                        embed.addFields({name:nameHistory[i].name, value:`Changed on ${new Date(nameHistory[i].changedToAt)}`})
                     }
                     msg.channel.send(embed)
                 }
@@ -543,19 +519,19 @@ Client.on('message', msg => {
             })()
 
         case "roblox":
-            if (typeof args[1] == 'undefined') return msg.reply("Command usage error." + docs)
+            if (typeof args[1] == 'undefined') return msg.reply(`Command usage error.${docs}`)
 
             return (async () => {
-                var usernameFetch = await fetchJSON("https://api.roblox.com/users/get-by-username/?username=" + args[1])
+                var usernameFetch = await fetchJSON(`https://api.roblox.com/users/get-by-username/?username=${args[1]}`)
                 if (usernameFetch.errorMessage == 'User not found') return msg.reply("Invalid ROBLOX username.")
 
                 var username = usernameFetch.Username
                 var uid = usernameFetch.Id
-                var link = "https://roblox.com/users/" + uid + "/profile"
-                var avatar = await fetchJSON("https://thumbnails.roblox.com/v1/users/avatar?userIds=" + uid + "&size=250x250&format=Png&isCircular=false")
-                var headshot = await fetchJSON("https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=" + uid + "&size=150x150&format=Png&isCircular=false")
+                var link = `https://roblox.com/users/${uid}/profile`
+                var avatar = await fetchJSON(`https://thumbnails.roblox.com/v1/users/avatar?userIds=${uid}&size=250x250&format=Png&isCircular=false`)
+                var headshot = await fetchJSON(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${uid}&size=150x150&format=Png&isCircular=false`)
 
-                var user = await fetchJSON("https://api.roblox.com/users/" + uid + "/onlinestatus/")
+                var user = await fetchJSON(`https://api.roblox.com/users/${uid}/onlinestatus/`)
                 var presence = "Last Online "
                 function formatTimestamp(timestamp) {
                     // Example Timestamp: 2006-02-27T00:00:01.OTHERINFORMATION
@@ -565,18 +541,18 @@ Client.on('message', msg => {
                     var dotSplit = TSplit[1].split(".") // Second half split
                     return [TSplit[0], dotSplit[0]] // returns Date, Time
                 }
-                user.IsOnline ? presence = user.LastLocation : presence += formatTimestamp(user.LastOnline).join(' at ') + " EST"
+                user.IsOnline ? presence = user.LastLocation : presence += `${formatTimestamp(user.LastOnline).join(' at ')} EST`
 
-                var joinTS = await fetchJSON("https://users.roblox.com/v1/users/" + uid)
+                var joinTS = await fetchJSON(`https://users.roblox.com/v1/users/${uid}`)
                 var desc = joinTS.description
                 if (desc == "") desc = "No description provided."
 
                 var joinDate = formatTimestamp(joinTS.created).join(' at ')
 
-                var status = await fetchJSON("https://users.roblox.com/v1/users/" + uid + "/status")
+                var status = await fetchJSON(`https://users.roblox.com/v1/users/${uid}/status`)
                 status.status == "" ? status = "No status provided." : status = status.status
 
-                var history = await fetchJSON("https://users.roblox.com/v1/users/" + uid + "/username-history?sortOrder=Asc")
+                var history = await fetchJSON(`https://users.roblox.com/v1/users/${uid}/username-history?sortOrder=Asc`)
                 var nameList = []
                 if (!joinTS.isBanned) { // banned users don't show past names
                     for (var i = 0; i < history.data.length; i ++) nameList.push(history.data[i].name)
@@ -584,7 +560,7 @@ Client.on('message', msg => {
                 nameList.length == 0? nameList = "No past names.": nameList = nameList.join(", ")
 
                 var embed = new Discord.MessageEmbed()
-                .setColor(randColor())
+                .setColor("BLUE")
                 .setTitle("ROBLOX User Information")
                 .setThumbnail(headshot.data[0].imageUrl)
                 .addFields(
@@ -606,83 +582,88 @@ Client.on('message', msg => {
         case "debugmode":
             if (config.DEBUGGERS.includes(msg.author.id)) {
                 config.DEBUGGING = !config.DEBUGGING
-                Client.user.setActivity((config.DEBUGGING? "DEBUGGING | ":"") + PREFIX + "help", {type:"PLAYING"})
+                Client.user.setActivity(`${(config.DEBUGGING? "DEBUGGING | ":"")}${PREFIX}help`, {type:"PLAYING"})
                 var embed = new Discord.MessageEmbed()
-                .setColor(randColor())
                 .setTitle("Debug Status")
                 if (config.DEBUGGING) {
-                    embed.setDescription("Debugging mode is now on, as requested by <@!" + msg.author.id + ">. Only debuggers will be allowed to use commands temporarily.")
+                    embed.setColor("RED")
+                    .setDescription("Debugging mode is now on. Command usage is restricted to debuggers.")
                 }
                 else {
-                    embed.setDescription("Debugging mode is now off, as requested by <@!" + msg.author.id + ">. Command usage restrictions have been lifted.")
+                    embed.setColor("GREEN")
+                    .setDescription("Debugging mode is now off. Command usage restrictions have been lifted.")
                 }
                 return msg.channel.send(embed)
             }
             else {
-                return msg.reply("You are not authorized to use the command \'" + args[0] + "\'.")
+                return msg.reply(`You are not authorized to use the command \'${args[0]}\'.`)
             }
         
         case "saveimages":
             if (config.DEBUGGERS.includes(msg.author.id)) {
                 config.SAVE_IMAGES = !config.SAVE_IMAGES
                 var embed = new Discord.MessageEmbed()
-                .setColor(randColor())
                 .setTitle("Save Image Status")
                 if (config.SAVE_IMAGES) {
-                    embed.setDescription("Saving images is now on, as requested by <@!" + msg.author.id + ">. The bot now has all modified images downloaded and saved locally.")
+                    embed.setColor("GREEN")
+                    .setDescription("Saving images is now on. The bot now has all modified images downloaded and saved locally.")
                 }
                 else {
-                    embed.setDescription("Saving images is now off, as requested by <@!" + msg.author.id + ">. The bot will no longer save images locally and will immediately delete images.")
+                    embed.setColor("BLUE")
+                    .setDescription("Saving images is now off. The bot will no longer save images locally and will immediately delete images.")
                 }
                 return msg.channel.send(embed)
             }
             else {
-                return msg.reply("You are not authorized to use the command \'" + args[0] + "\'.")
+                return msg.reply(`You are not authorized to use the command \'${args[0]}\'.`)
             }
 
         case "external":
             if (config.DEBUGGERS.includes(msg.author.id)) {
                 config.EXTERNAL_HOSTING = !config.EXTERNAL_HOSTING
                 var embed = new Discord.MessageEmbed()
-                .setColor(randColor())
                 .setTitle("Accepting External Images Status")
-                if (config.SAVE_IMAGES) {
-                    embed.setDescription("Accepting external images is now on, as requested by <@!" + msg.author.id + ">. The bot now accepts images from all domains.")
+                if (config.EXTERNAL_HOSTING) {
+                    embed.setColor("RED")
+                    .setDescription("Accepting external images is now on. The bot now accepts images from all domains.")
                 }
                 else {
-                    embed.setDescription("Accepting external images is now off, as requested by <@!" + msg.author.id + ">. The bot will no longer accept images from domains other than cdn.discordapp.com.")
+                    embed.setColor("BLUE")
+                    .setDescription("Accepting external images is now off. The bot will no longer accept images from domains other than cdn.discordapp.com.")
                 }
                 return msg.channel.send(embed)
             }
             else {
-                return msg.reply("You are not authorized to use the command \'" + args[0] + "\'.")
+                return msg.reply(`You are not authorized to use the command \'${args[0]}\'.`)
             }
 
         case "ip":
         case "ipinfo":
         case "website":
         case "websiteinfo":
-            if (typeof args[1] == 'undefined') return msg.reply("Command usage error." + docs)
+            if (typeof args[1] == 'undefined') return msg.reply(`Command usage error.${docs}`)
 
             var Link = getDomain(args[1])
-            if (!Link) return msg.reply("Invalid URL / IP." + docs)
+            if (!Link) return msg.reply(`Invalid URL / IP.${docs}`)
 
             return (async () => {
-                var statusMessage = await msg.channel.send("Launching Chromium...").catch(()=>{})
+                var statusMessage = await msg.channel.send("Launching Chromium...")
                 const browser = await chromium.launch();
                 var ipv6 = false
                 statusMessage.edit("Checking if it is an IPv6 address...").catch(()=>{})
                 const page = await browser.newPage();
+
                 if (Link.includes(":")) { // db-ip.com shows more accurate information of ipv6 addresses, it also works with ipv4 but the ipgeolocation.io is more detailed with ipv4
-                    await page.goto('https://db-ip.com/' + Link.replace("/:/g", "%3A"), {waitUntil: 'load'}) // how ipv6 is handled as a query
+                    await page.goto(`https://db-ip.com/${Link.replace("/:/g", "%3A")}`, {waitUntil: 'load'}) // how ipv6 is handled as a query
                     const error404 = await page.evaluate(() => {
                         return document.getElementsByClassName("main")[0].innerHTML // existent regardless if the ip exists or not, just the message is different
                     })
                     if (error404 != "404 Not Found") ipv6 = true
                 }
-                statusMessage.edit(ipv6? "IPv6 Address detected. Visiting alternative page...":"IPv6 address not detected. Accessing ipgeolocation.io...").catch(()=>{})
+                statusMessage.edit(ipv6? "IPv6 address detected. Visiting db-ip.com...":"IPv6 address not detected. Accessing ipgeolocation.io...").catch(()=>{})
+
                 if (ipv6) {
-                    await page.goto('https://db-ip.com/' + Link.replace("/:/g", "%3A"), {waitUntil: 'load'})
+                    await page.goto(`https://db-ip.com/${Link.replace("/:/g", "%3A")}`, {waitUntil: 'load'})
                     statusMessage.edit("IPv6 information loaded. Evaluating contents...").catch(()=>{})
                     const main = await page.evaluate(() => {
                         return document.getElementsByClassName("table light")[2].innerHTML
@@ -708,7 +689,8 @@ Client.on('message', msg => {
                                 else {
                                     found = found.substring(0, found.indexOf("<")) // to get the text field
                                 }
-                                found = found.replace("amp;", "").replace("\n", "") // remove miscellaneous characters
+                                found = found.replace("amp;", "").replace("\n", "")
+
                                 ipv6Information.push(found.endsWith(" ")? found.substring(0, found.length - 1):found)
                             }
                         })
@@ -718,7 +700,8 @@ Client.on('message', msg => {
                             var found = ISPTable[i]
                             found = found.split("<td>")[1]
                             found = found.substring(0, found.indexOf("<")) // to get the text field
-                            found = found.replace("amp;", "") // remove miscellaneous characters
+                            found = found.replace("amp;", "")
+
                             ipv6Information.push(found) // less exceptions for just the ISP field
                         }
                     }
@@ -726,7 +709,7 @@ Client.on('message', msg => {
                     statusMessage.delete().catch(()=>{})
 
                     var embed = new Discord.MessageEmbed()
-                    .setColor(randColor())
+                    .setColor("BLUE")
                     .setTitle("IPv6 Information")
 
                     for (var i = 0; i < lookingFor.length; i++) {
@@ -738,25 +721,28 @@ Client.on('message', msg => {
                     msg.channel.send(embed)
                 }
                 else {
-                    await page.goto('https://ipgeolocation.io/browse/ip/' + Link, {waitUntil: 'load'}) // make sure the link is correct!
+                    await page.goto(`https://ipgeolocation.io/browse/ip/${Link}`, {waitUntil: 'load'}) // make sure the link is correct!
                     statusMessage.edit("IP information loaded. Evaluating contents...").catch(()=>{})
+
                     const body = await page.evaluate(() => {
                         if (document.getElementsByClassName("serverMessageBox").length > 0) return null // will show if url is invalid
                         if (document.getElementById("ipInfoTable").length < 1) return 0 // won't show if innerHTML is missing, only happened to me once
                         return document.getElementById("ipInfoTable").innerHTML
                     })
+
                     if (body == 0) {
                         statusMessage.delete().catch(()=>{})
                         msg.reply("ERROR: Missing innerHTML.")
                     }
                     else if (body) {
                         statusMessage.edit("Resolving hostname...").catch(()=>{})
-                        await page.goto('https://www.ip-tracker.org/locator/ip-lookup.php?ip=' + Link, {waitUntil: 'load'})
+                        await page.goto(`https://www.ip-tracker.org/locator/ip-lookup.php?ip=${Link}`, {waitUntil: 'load'})
                         const hostname = await page.evaluate(()=> {
                             if (document.getElementsByClassName("lookupredempty").length > 0) return null // will show if url is invalid
                             if (document.getElementsByClassName("table-auto").length < 1) return null // can never hurt
                             return document.getElementsByClassName("table-auto")[0].innerHTML
                         })
+                        
                         var realHostname = ""
                         if (hostname) {
                             var trackingInfo = hostname.split("<th>")
@@ -766,6 +752,7 @@ Client.on('message', msg => {
                                     realHostname = tracker.substring(index + "tracking\">".length, tracker.indexOf("</td"))
                                 }
                             })
+
                             var ipTable = body.split("<td>")
                             var lookingFor = ["IP", "Hostname", "Continent Name", "Country Name", "State/Province", "District/County", "Zip Code", "Latitude", "ISP"]
                             var ipInformation = []
@@ -780,7 +767,7 @@ Client.on('message', msg => {
                             statusMessage.delete().catch(()=>{})
     
                             var embed = new Discord.MessageEmbed()
-                            .setColor(randColor())
+                            .setColor("BLUE")
                             .setTitle("Website / IP Information")
     
                             for (var i = 0; i < lookingFor.length; i++) {
@@ -794,44 +781,47 @@ Client.on('message', msg => {
                         }
                         else {
                             statusMessage.delete().catch(()=>{})
-                            msg.reply("Invalid URL." + docs)
+                            msg.reply(`Invalid URL.${docs}`)
                         }
                     }
                     else {
                         statusMessage.delete().catch(()=>{})
-                        msg.reply("Invalid URL." + docs)
+                        msg.reply(`Invalid URL.${docs}`)
                     }
                 }
                 browser.close();
             })()
 
         case "whois":
-            if (typeof args[1] == 'undefined') return msg.reply("Command usage error." + docs)
+            if (typeof args[1] == 'undefined') return msg.reply(`Command usage error.${docs}`)
 
             var Link = getDomain(args[1])
-            if (!Link) return msg.reply("Invalid URL / IP." + docs)
+            if (!Link) return msg.reply(`Invalid URL / IP.${docs}`)
 
             return (async () => {
-                var statusMessage = await msg.channel.send("Launching Chromium...").catch(()=>{})
+                var statusMessage = await msg.channel.send("Launching Chromium...")
                 const browser = await chromium.launch();
                 statusMessage.edit("Accessing page...").catch(()=>{})
                 const page = await browser.newPage();
-                const search = 'https://www.ip-tracker.org/lookup/whois-lookup.php?query=' + Link
+
+                const search = `https://www.ip-tracker.org/lookup/whois-lookup.php?query=${Link}`
                 await page.goto(search, {waitUntil: 'load'});
                 statusMessage.edit("WHOIS loaded. Evaluating contents...").catch(()=>{})
+
                 var body = await page.evaluate(() => {
                     if (document.getElementsByClassName("it").length < 1) return null
                     return document.getElementsByClassName("it")[0].innerHTML
                 })
+                
                 if (body) {
                     statusMessage.delete().catch(()=>{})
 
                     var embed = new Discord.MessageEmbed()
-                    .setColor(randColor())
+                    .setColor("BLUE")
                     .setTitle("WHOIS Information")
                     if (body.length > 2045) {
-                        embed.setFooter("View full page: " + search)
-                        body = body.substring(0, 2045) + "..."
+                        embed.setFooter(`View full page: ${search}`)
+                        body = `${body.substring(0, 2045)}...`
                     }
                     embed.setDescription(body)
 
@@ -839,9 +829,25 @@ Client.on('message', msg => {
                 }
                 else {
                     statusMessage.delete().catch(()=>{})
-                    msg.reply("Invalid URL." + docs)
+                    msg.reply(`Invalid URL.${docs}`)
                 }
                 browser.close();
             })()
+
+        case "purgedms":
+            if (msg.guild) {
+                return msg.reply("You must use this command in a DM.")
+            }
+            else {
+                return (async () => {
+                    const dmMessages = await msg.channel.messages.fetch({ limit: 100}).catch(()=>{console.log("ERROR fetching DM messages.")})
+                    dmMessages.forEach(message => {
+                        if (message.author.bot) {
+                            message.delete().catch(()=>{})
+                        }
+                    })
+                })()
+            }
+
     }
 })

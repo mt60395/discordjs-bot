@@ -8,7 +8,7 @@ Made mainly for my needs, it has: a server whitelist, discord user lookup, simpl
 ### help
 Provides a link to this page for documentation.
 
-*Aliases: h, cmds*
+*Aliases: cmds, docs*
 ### info
 Provides information about the bot.
 ### uptime
@@ -56,7 +56,11 @@ Resizes an image. Dimensions can be combined together with an 'x' or separated. 
 ### mirror
 Mirrors an image horizontally, vertically, or both ways. Only accepts png, jpg, and jpeg files.
 
-The direction can be: ```horizontal```, ```vertical```, ```h```, ```v```, ```both```
+Valid directions:
+
+- Horizontal: h, horizontal
+- Vertical: v, vertical
+- Both: b, hv, vh, both
 
 *With an attachment (files uploaded with the command as a comment):* ```mirror {direction}```
 
@@ -95,9 +99,6 @@ Flips a coin.
 
 *Aliases: coin, coinflip*
 
-### 8ball
-Consults the magic 8 ball.
-
 ### poll
 Creates a poll. 
 
@@ -121,7 +122,7 @@ Converts a string from base64 encoding.
 ```decode {string}```
 
 ### namemc
-Display a history of past usernames given a provided username.
+Display a history of past Minecraft usernames given a provided username.
 
 ```namemc {username}```
 
@@ -143,6 +144,9 @@ Displays information about a website or IP.
 Displays information about a WHOIS lookup for a specified domain.
 
 ```whois {website}```
+
+### purgedms
+Purge 100 direct messages from the bot. This must be used in a DM channel with the bot.
 
 ## Restricted commands
 These commands are restricted to whitelisted user IDs labeled as DEBUGGERS in the config file.

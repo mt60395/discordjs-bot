@@ -36,7 +36,7 @@ Display a user's avatar / profile picture from a user ID or mention. https://sup
 ```avatar {@user}```
 
 ### rotate
-Rotates an image a specified degree counter-clockwise (to the left). Only accepts png, jpg, and jpeg files.
+Rotates an image a specified degree counter-clockwise. Only accepts png, jpg, and jpeg files.
 
 *With an attachment (files uploaded with the command as a comment):* ```rotate {degrees}```
 
@@ -45,9 +45,9 @@ Rotates an image a specified degree counter-clockwise (to the left). Only accept
 ### resize
 Resizes an image. Dimensions can be combined together with an 'x' or separated. Only accepts png, jpg, and jpeg files.
 
-*With an attachment (files uploaded with the command as a comment):* ```resize {dimensionArgs}```
+*With an attachment (files uploaded with the command as a comment):* ```resize {dimensions}```
 
-*With a link:* ```resize {link} {dimensionArgs}```
+*With a link:* ```resize {link} {dimensions}```
 
 ```resize 1920x1080```
 
@@ -167,5 +167,9 @@ Toggles accepting images from domains other than cdn.discordapp.com.
 - Create the bot invite link: https://discordapi.com/permissions.html
 - Invite the bot to a server that you want it to be in.
 - Put your bot token in the BOT_TOKEN field located in the .env file.
-- Modify the config.json file to fit your needs. Add your whitelisted guild IDs and such. Debug/saveimages commands won't write to the JSON file, but the config will have the default options once the bot restarts.
+- Modify the config.json file to fit your needs. Add your whitelisted guild IDs and such. Commands like debugmode/saveimages won't write to the JSON file, but the config will have the default options once the bot restarts.
+- Change your current directory to the folder in the terminal.
+- Install the necessary node modules with ```npm install```.
+- Start the bot with node.
+
 Please note the bot requires a restart before joining a newly whitelisted guild.

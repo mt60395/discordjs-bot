@@ -5,7 +5,7 @@ const PREFIX = process.env.PREFIX
 const config = require("../config")
 Client.login(process.env.BOT_TOKEN)
 
-Client.on('ready', () => {
+Client.on('ready', () => { // on bot start
     Client.user.setActivity(`${(config.DEBUGGING? "DEBUGGING | ":"")}${PREFIX}help`, {type:"PLAYING"})
     console.log(`Server count: ${Client.guilds.cache.size}`)
     Client.guilds.cache.forEach(g => {
@@ -40,8 +40,8 @@ async function fetchJSON(url) {
 function formatID(id) {
     // input: discord user id
     // returns it fixed if it's a mention: <@!uid> --> uid
-    if (id.substring(0, 3) == '<@!') id = id.substring(3)
-    if (id.substring(id.length - 1) == '>') id = id.substring(0, id.length-1)
+    if (id.startsWith('<@!')) id = id.substring(3)
+    if (id.endsWith('>')) id = id.substring(0, id.length-1)
     return id
 }
 
@@ -66,6 +66,8 @@ function getLink(attachments, arg) {
 }
 
 function getDomain(arg) {
+    // input: link
+    // returns the domain only, with the protocol removed from the link
     arg = fixLink(arg)
     var protocol = arg.startsWith('http')?'http://':arg.startsWith('https')?'https://':null
     if (arg.endsWith("/")) arg = arg.substring(0, arg.length - 1)
@@ -74,7 +76,7 @@ function getDomain(arg) {
 }
 
 function isCdn(Link) {
-    // checks if an image is a cdn.discordapp.com link if you are hosting on your own PC to not get IP grabbed
+    // returns if an image is a cdn.discordapp.com link if you are hosting on your own PC to not get IP grabbed
     Link = fixLink(Link)
     var split = Link.split("://") // {protocol, domain}
     switch(split[0]) {
@@ -113,9 +115,8 @@ function formatTime(ms) { // converts time from milliseconds because discord.js 
 const docs = " Documentation: https://github.com/mt60395/discordjs-bot/blob/master/README.md"
 
 Client.on('message', msg => {
-    if (!(msg.content.substring(0, 1) == PREFIX)) return // prefix check
-    if (msg.author.bot) return // bot recursion check
-    if (config.DEBUGGING) if (!config.DEBUGGERS.includes(msg.author.id)) return msg.reply("The bot is currently in debugging mode. Please temporarily refrain from using commands.")
+    if (!(msg.content.startsWith(PREFIX)) || msg.author.bot) return
+    if (config.DEBUGGING && !config.DEBUGGERS.includes(msg.author.id)) return msg.reply("The bot is currently in debugging mode. Please temporarily refrain from using commands.")
     var args = msg.content.substring(PREFIX.length).split(" ") // only use after the prefix
     switch(args[0]) {
         case "help":
@@ -819,7 +820,7 @@ Client.on('message', msg => {
                     var embed = new Discord.MessageEmbed()
                     .setColor("BLUE")
                     .setTitle("WHOIS Information")
-                    if (body.length > 2045) {
+                    if (body.length > 2048) {
                         embed.setFooter(`View full page: ${search}`)
                         body = `${body.substring(0, 2045)}...`
                     }

@@ -6,46 +6,48 @@ Made mainly for my needs, it has: a server whitelist, discord user lookup, simpl
 
 ## Commands and Documentation
 ### help
-Provides a link to this page for documentation.
+Provides a link to this page for documentation. Use ```help``` with a command for information about its usage.
 
 *Aliases: cmds, docs*
+
+```help {OPTIONAL:command}```
 ### info
 Provides information about the bot.
-### uptime
-Provides information about the bot uptime.
+### status
+Provides information about the bot status.
 
-*Alias: status*
+*Alias: uptime*
 ### user
 Provides information about a user from a user ID or mention. https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-
 
 *Alias: userinfo*
 
-```user {userid}```
+```user {OPTIONAL:userid}```
 
-```user {@user}```
+```user {OPTIONAL:@user}```
 
-### server
+### serverinfo
 Display informations about the server.
 
-*Alias: serverinfo*
+*Alias: server*
 ### avatar
 Display a user's avatar / profile picture from a user ID or mention. https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-
 
-```avatar {userid}```
+```avatar {OPTIONAL:userid}```
 
-```avatar {@user}```
+```avatar {OPTIONAL:@user}```
 
 ### rotate
 Rotates an image a specified degree counter-clockwise. Only accepts png, jpg, and jpeg files.
 
-*With an attachment (files uploaded with the command as a comment):* ```rotate {degrees}```
+*With an attachment:* ```rotate {degrees}```
 
 *With a link:* ```rotate {link} {degrees}```
 
 ### resize
 Resizes an image. Dimensions can be combined together with an 'x' or separated. Only accepts png, jpg, and jpeg files.
 
-*With an attachment (files uploaded with the command as a comment):* ```resize {dimensions}```
+*With an attachment:* ```resize {dimensions}```
 
 *With a link:* ```resize {link} {dimensions}```
 
@@ -62,49 +64,47 @@ Valid directions:
 - Vertical: v, vertical
 - Both: b, hv, vh, both
 
-*With an attachment (files uploaded with the command as a comment):* ```mirror {direction}```
+*With an attachment:* ```mirror {direction}```
 
 *With a link:* ```mirror {link} {direction}```
 
 ### invert
 Inverts an image's colors. Only accepts png, jpg, and jpeg files.
 
-*With an attachment (files uploaded with the command as a comment):* ```invert```
+*With an attachment:* ```invert```
 
 *With a link:* ```invert {link}```
 
 ### rng
-Random number generator. Providing a minimum + maximum number is optional. It is -1000000 and 1000000 by default.
+Random number generator. Providing a minimum + maximum number is optional. It is -1000000 and 1000000 by default if you are missing one or both of the arguments.
 
-```rng {min} {max}```
+```rng {OPTIONAL:min} {OPTIONAL:max}```
 
 ### choose
-Choose between at least 2 provided strings. They must be separated by a vertical bar, | (this is to provide support for strings with spaces).
+Choose between at least 2 provided strings. Strings must be separated by a vertical bar ( | ).
 
 ```choose {option} | {option2}```
 
 ```choose apple | orange | pear```
 
 ### gen
-Password generator.
-
-Generates a password and sends it by DM. The default length is 32 if you don't provide one for input.
+Generates a password up to 2042 characters and sends it by DM. The default length is 32 if you don't provide one for input.
 
 *Aliases: pass, password*
 
-```gen 16```
+```gen {OPTIONAL:length}```
 
-### flip
+### coinflip
 Flips a coin.
 
-*Aliases: coin, coinflip*
+*Aliases: flip, coin*
 
 ### poll
 Creates a poll. 
 
-*Option 1: Create a poll with a check and x:* ```poll {question}```
+*Create a poll with a check and x:* ```poll {question}```
 
-*Option 2: Create a poll with numbers from 1-9:* ```poll {number} {question}```
+*Create a poll with numbers from 1-9:* ```poll {number} {question}```
 
 ### reverse
 Reverses a provided string.
@@ -146,13 +146,18 @@ Displays information about a WHOIS lookup for a specified domain.
 ```whois {website}```
 
 ### purgedms
-Purge 100 direct messages from the bot. This must be used in a DM channel with the bot.
+Purge up to 100 direct messages from the bot. This must be used in a DM channel with the bot.
+
+### purge
+Purges up to 100 messages. Only users with MANAGE_MESSAGES permissions are allowed to use this command.
+
+```purge {amount}```
 
 ## Restricted commands
 These commands are restricted to whitelisted user IDs labeled as DEBUGGERS in the config file.
 
 ### debug
-Toggles the debugging mode, which restricts access to whitelisted debuggers.
+Toggles the debugging mode, which restricts bot access to whitelisted debuggers.
 
 *Alias: debugmode*
 

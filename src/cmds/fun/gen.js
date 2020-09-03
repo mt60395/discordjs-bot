@@ -17,7 +17,7 @@ module.exports = {
 
         function genString(LENGTH) {
             var str = ""
-            for (var i = 0; i < LENGTH; i++) str += String.fromCharCode(Math.random() * 94 + 34)
+            for (var i = 0; i < LENGTH; i++) str += String.fromCharCode(Math.random() * 94 + 33)
             return str
         }
 

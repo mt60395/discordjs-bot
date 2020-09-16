@@ -40,16 +40,26 @@ Display a user's avatar / profile picture from a user ID or mention. https://sup
 ### rotate
 Rotates an image a specified degree counter-clockwise. Only accepts png, jpg, and jpeg files.
 
-*With an attachment:* ```rotate {degrees}```
+With an attachment: 
+    
+    rotate {degrees}
 
-*With a link:* ```rotate {link} {degrees}```
+With a link:
+    
+    rotate {link} {degrees}
 
 ### resize
 Resizes an image. Dimensions can be combined together with an 'x' or separated. Only accepts png, jpg, and jpeg files.
 
-*With an attachment:* ```resize {dimensions}```
+With an attachment:
 
-*With a link:* ```resize {link} {dimensions}```
+    resize {dimensions}
+
+With a link:
+
+    resize {link} {dimensions}
+
+Example usage
 
     resize 1920x1080
 
@@ -64,16 +74,24 @@ Valid directions:
 - Vertical: v, vertical
 - Both: b, hv, vh, both
 
-*With an attachment:* ```mirror {direction}```
+With an attachment:
 
-*With a link:* ```mirror {link} {direction}```
+    mirror {direction}
+
+With a link:
+
+    mirror {link} {direction}
 
 ### invert
 Inverts an image's colors. Only accepts png, jpg, and jpeg files.
 
-*With an attachment:* ```invert```
+With an attachment:
 
-*With a link:* ```invert {link}```
+    invert
+
+With a link:
+
+    invert {link}
 
 ### rng
 Random number generator. Providing a minimum + maximum number is optional. It is -1000000 and 1000000 by default if you are missing one or both of the arguments.
@@ -90,9 +108,9 @@ Choose between at least 2 provided strings. Strings must be separated by a verti
 ### gen
 Generates a password up to 2042 characters and sends it by DM. The default length is 32 if you don't provide one for input.
 
-*Aliases: pass, password*
-
     gen {OPTIONAL:length}
+    
+*Aliases: pass, password*
 
 ### coinflip
 Flips a coin.
@@ -102,9 +120,13 @@ Flips a coin.
 ### poll
 Creates a poll. 
 
-*Create a poll with a check and x:* ```poll {question}```
+Create a poll with a check and x:
 
-*Create a poll with numbers from 1-9:* ```poll {number} {question}```
+    poll {question}
+
+Create a poll with numbers from 1-9 as options:
+
+    poll {number} {question}
 
 ### reverse
 Reverses a provided string.

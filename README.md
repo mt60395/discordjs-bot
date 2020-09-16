@@ -10,7 +10,7 @@ Provides a link to this page for documentation. Use ```help``` with a command fo
 
 *Aliases: cmds, docs*
 
-```help {OPTIONAL:command}```
+    help {OPTIONAL:command}
 ### info
 Provides information about the bot.
 ### status
@@ -22,9 +22,9 @@ Provides information about a user from a user ID or mention. https://support.dis
 
 *Alias: userinfo*
 
-```user {OPTIONAL:userid}```
+    user {OPTIONAL:userid}
 
-```user {OPTIONAL:@user}```
+    user {OPTIONAL:@user}
 
 ### serverinfo
 Display informations about the server.
@@ -33,9 +33,9 @@ Display informations about the server.
 ### avatar
 Display a user's avatar / profile picture from a user ID or mention. https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-
 
-```avatar {OPTIONAL:userid}```
+    avatar {OPTIONAL:userid}
 
-```avatar {OPTIONAL:@user}```
+    avatar {OPTIONAL:@user}
 
 ### rotate
 Rotates an image a specified degree counter-clockwise. Only accepts png, jpg, and jpeg files.
@@ -51,9 +51,9 @@ Resizes an image. Dimensions can be combined together with an 'x' or separated. 
 
 *With a link:* ```resize {link} {dimensions}```
 
-```resize 1920x1080```
+    resize 1920x1080
 
-```resize 1920 1080```
+    resize 1920 1080
 
 ### mirror
 Mirrors an image horizontally, vertically, or both ways. Only accepts png, jpg, and jpeg files.
@@ -78,21 +78,21 @@ Inverts an image's colors. Only accepts png, jpg, and jpeg files.
 ### rng
 Random number generator. Providing a minimum + maximum number is optional. It is -1000000 and 1000000 by default if you are missing one or both of the arguments.
 
-```rng {OPTIONAL:min} {OPTIONAL:max}```
+    rng {OPTIONAL:min} {OPTIONAL:max}
 
 ### choose
 Choose between at least 2 provided strings. Strings must be separated by a vertical bar ( | ).
 
-```choose {option} | {option2}```
+    choose {option} | {option2}
 
-```choose apple | orange | pear```
+    choose apple | orange | pear
 
 ### gen
 Generates a password up to 2042 characters and sends it by DM. The default length is 32 if you don't provide one for input.
 
 *Aliases: pass, password*
 
-```gen {OPTIONAL:length}```
+    gen {OPTIONAL:length}
 
 ### coinflip
 Flips a coin.
@@ -109,41 +109,41 @@ Creates a poll.
 ### reverse
 Reverses a provided string.
 
-```reverse {string}```
+    reverse {string}
 
 ### encode
 Converts a string to base64 encoding.
 
-```encode {string}```
+    encode {string}
 
 ### decode
 Converts a string from base64 encoding.
 
-```decode {string}```
+    decode {string}
 
 ### namemc
 Display a history of past Minecraft usernames given a provided username.
 
-```namemc {username}```
+    namemc {username}
 
 *Aliases: mc, minecraft*
 
 ### roblox
 Displays information about a ROBLOX user.
 
-```roblox {username}```
+    roblox {username}
 
 ### website
 Displays information about a website or IP.
 
-```website {website/ip}```
+    website {website/ip}
 
 *Aliases: websiteinfo, ip, ipinfo*
 
 ### whois
 Displays information about a WHOIS lookup for a specified domain.
 
-```whois {website}```
+    whois {website}
 
 ### purgedms
 Purge up to 100 direct messages from the bot. This must be used in a DM channel with the bot.
@@ -151,7 +151,7 @@ Purge up to 100 direct messages from the bot. This must be used in a DM channel 
 ### purge
 Purges up to 100 messages. Only users with MANAGE_MESSAGES permissions are allowed to use this command.
 
-```purge {amount}```
+    purge {amount}
 
 ## Restricted commands
 These commands are restricted to whitelisted user IDs labeled as DEBUGGERS in the config file.

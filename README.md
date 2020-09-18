@@ -204,8 +204,7 @@ Toggles accepting images from domains other than cdn.discordapp.com.
 - Fork this repository or clone it and upload it to GitHub with all the files modified as you wish.
 - Edit the config.json file to how you wish.
 - Go to the heroku dashboard: https://dashboard.heroku.com/
-- Create a new pipeline that is connected to your new GitHub repository.
-- In the pipeline tab, add a new app under PRODUCTION. Click create app and it will generate a name for you.
+- Create a new app and it will generate a name for you.
 - Click on the app.
 - Either make the repository private and include the bot token in the .env file or remove the BOT_TOKEN line from .env to add it to config vars.
 - If you want to add your token to config vars: click on the settings tab on the app. Click Reveal Config Vars. Add BOT_TOKEN as the KEY and your bot token as the VALUE. Click Add.

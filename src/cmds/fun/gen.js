@@ -13,6 +13,7 @@ module.exports = {
             if (!(n > 0 && n < 2043 && Number.isInteger(n))) { // if it is provided check the number
                 return msg.reply(`Invalid number. The integer must be less than 2043 and greater than 0.${docs}`)
             }
+            length = n
         }
 
         function genString(LENGTH) {

@@ -57,7 +57,7 @@ module.exports = {
 
         switch(args[0]) {
             case "rotate":
-                var degree = Number(msg.attachments > 0 ? args[1]:args[2])
+                var degree = Number(msg.attachments.size > 0 ? args[1]:args[2])
                 if (!(degree > 0 && degree < 360)) return msg.reply(`Invalid degree. The degree must be greater than 0 and less than 360.${docs}`)
                 return require('./rotate').run(msg, Link, degree, output, config.SAVE_IMAGES)
                 // single argument exists if attachment provided. else, the second argument will be used
@@ -86,7 +86,7 @@ module.exports = {
                     return msg.reply(`Invalid dimension(s). Desired side length must be greater than 1 pixel and less than 4096 pixels.${docs}`)
                 return require('./resize').run(msg, Link, res, output, config.SAVE_IMAGES)
             case "mirror":
-                var direction = msg.attachments > 0 ? args[1]:args[2]
+                var direction = msg.attachments.size > 0 ? args[1]:args[2]
                 if (typeof direction == 'undefined') return msg.reply(`Invalid direction. It must be horizontal, vertical, or both.${docs}`)
 
                 var validDirection = false, h = false, v = false, both = false // variable both is for the message reply, other vars are for direction/validity checking

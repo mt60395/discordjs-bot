@@ -8,9 +8,9 @@ Made mainly for my needs, it has: a server whitelist, discord user lookup, simpl
 ### help
 Provides a link to this page for documentation. Use ```help``` with a command for information about its usage.
 
-*Aliases: cmds, docs*
-
     help {OPTIONAL:command}
+    
+*Aliases: cmds, docs*
 ### info
 Provides information about the bot.
 ### status
@@ -20,11 +20,11 @@ Provides information about the bot status.
 ### user
 Provides information about a user from a user ID or mention. https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-
 
-*Alias: userinfo*
-
     user {OPTIONAL:userid}
 
     user {OPTIONAL:@user}
+
+*Alias: userinfo*
 
 ### serverinfo
 Display informations about the server.
@@ -198,5 +198,18 @@ Toggles accepting images from domains other than cdn.discordapp.com.
 - Change your current directory to the folder in the terminal.
 - Install the necessary node modules with ```npm install```.
 - Start the bot with node.
+
+## Hosting with Heroku
+- Create an account: https://heroku.com
+- Fork this repository or clone it and upload it to GitHub with all the files modified as you wish.
+- Edit the config.json file to how you wish.
+- Go to the heroku dashboard: https://dashboard.heroku.com/
+- Create a new pipeline that is connected to your new GitHub repository.
+- In the pipeline tab, add a new app under PRODUCTION. Click create app and it will generate a name for you.
+- Click on the app.
+- Either make the repository private and include the bot token in the .env file or remove the BOT_TOKEN line from .env to add it to config vars.
+- If you want to add your token to config vars: click on the settings tab on the app. Click Reveal Config Vars. Add BOT_TOKEN as the KEY and your bot token as the VALUE. Click Add.
+- Click on the Deploy tab.
+- Deploy your application.
 
 Please note the bot requires a restart before joining a newly whitelisted guild.

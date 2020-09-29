@@ -5,8 +5,7 @@ module.exports = {
     aliases: [],
     dm: true,
     run: (Client, msg) => {
-        if (msg.guild)
-            return msg.reply("You must use this command in a DM.");
+        if (msg.guild) return msg.reply("You must use this command in a DM.");
         (async () => {
             const dmMessages = await msg.channel.messages.fetch({limit: 100}).catch(()=>{console.log("ERROR fetching DM messages.")})
             // max is 100 at a time

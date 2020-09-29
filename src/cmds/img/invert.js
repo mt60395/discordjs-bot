@@ -12,8 +12,7 @@ module.exports = {
         
         (async () => {
             let input = await jimp.read(Link)
-            input.invert()
-            .write(output)
+            input.invert().write(output)
             fs.stat('./' + output, async () => {
                 await msg.channel.send("**Sucessfully inverted colors! :white_check_mark:**", {files:['./' + output]})
                 .catch(()=>{msg.reply("There was an error uploading your image.")})

@@ -37,7 +37,7 @@ module.exports = {
             const page = await browser.newPage();
 
             const search = `https://www.ip-tracker.org/lookup/whois-lookup.php?query=${Link}`
-            await page.goto(search, {waitUntil: 'load'});
+            await page.goto(search, {waitUntil: 'load'})
             statusMessage.edit("WHOIS loaded. Evaluating contents...").catch(()=>{})
 
             var body = await page.evaluate(() => {

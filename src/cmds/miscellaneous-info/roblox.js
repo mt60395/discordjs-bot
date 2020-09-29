@@ -48,9 +48,11 @@ module.exports = {
             var history = await fetchJSON(`https://users.roblox.com/v1/users/${uid}/username-history?sortOrder=Asc`)
             var nameList = []
             if (!joinTS.isBanned) { // banned users don't show past names
-                for (var i = 0; i < history.data.length; i ++) nameList.push(history.data[i].name)
+                for (var i = 0; i < history.data.length; i ++) {
+                    nameList.push(history.data[i].name)
+                }
             }
-            nameList.length == 0? nameList = "No past names.": nameList = nameList.join(", ")
+            if (nameList.length > 0) nameList = nameList.join(", ")
 
             var embed = new Discord.MessageEmbed()
             .setColor("BLUE")

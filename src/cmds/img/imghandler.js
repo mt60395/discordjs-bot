@@ -24,11 +24,7 @@ module.exports = {
         function isCdn(Link) {
             // returns if an image is a cdn.discordapp.com link if you are hosting on your own PC to not get IP grabbed
             var split = Link.split("://") // {protocol, domain}
-            switch(split[0]) {
-                case "http":case"https":
-                    if (split[1].startsWith("cdn.discordapp.com")) return true
-                default: return false
-            }
+            return (split[0] == "http" || split[0] == "https") && split[1].startsWith("cdn.discordapp.com");
         }
 
         if (!config.EXTERNAL_HOSTING) // if hosting on your own device

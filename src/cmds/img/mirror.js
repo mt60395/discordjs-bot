@@ -3,14 +3,12 @@ module.exports = {
     desc: "Mirrors an image horizontally, vertically, or both ways.",
     notice: "Only accepts png, jpg, and jpeg files.",
     aliases: [],
-    usage: `Valid directions:
+    usage: `Directions:
     - Horizontal: h, horizontal
     - Vertical: v, vertical
     - Both: b, hv, vh, both
     
-    With an attachment:\nmirror {direction}
-
-    With a link:\nmirror {link} {direction}`,
+    mirror {OPTIONAL:link} {direction}`,
     run: (msg, Link, directions, output, SAVE_IMAGES) => {
         const jimp = require('jimp')
         const fs = require('fs')

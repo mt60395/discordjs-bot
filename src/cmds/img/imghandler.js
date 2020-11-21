@@ -2,7 +2,7 @@ module.exports = {
     handle: (Client, msg, args, config) => {
         const docs = " Refer to the `help` command if necessary."
         // if command isn't invert then an arg is necessary no matter what
-        if (args[0] != "invert" && typeof args[1] == 'undefined') return msg.reply(`Command usage error.${docs}`)
+        if (args[0] != "invert" && args[0] != "greyscale" && typeof args[1] == 'undefined') return msg.reply(`Command usage error.${docs}`)
 
         function fixLink(arg) { // remove < > if present
             if (!arg) return // for invert, which would error because of the call when an argument isn't necessary
@@ -54,7 +54,9 @@ module.exports = {
         switch(args[0]) {
             case "rotate":
                 var degree = Number(msg.attachments.size > 0 ? args[1]:args[2])
-                if (!(degree > 0 && degree < 360)) return msg.reply(`Invalid degree. The degree must be greater than 0 and less than 360.${docs}`)
+                if (!(degree > 0 && degree < 360)) {
+                    return msg.reply(`Invalid degree; must be in the range of [0, 360).${docs}`)
+                }
                 return require('./rotate').run(msg, Link, degree, output, config.SAVE_IMAGES)
                 // single argument exists if attachment provided. else, the second argument will be used
             case "resize":
@@ -78,13 +80,15 @@ module.exports = {
                 var bool2 = res[1] > 1 && res[1] <= 4096
                 var bool3 = Number.isInteger(res[0])
                 var bool4 = Number.isInteger(res[1]) // JIMP errors with non integers
-                if (!(bool && bool2 && bool3 && bool4)) 
-                    return msg.reply(`Invalid dimension(s). Desired side length must be greater than 1 pixel and less than 4096 pixels.${docs}`)
+                if (!(bool && bool2 && bool3 && bool4)) {
+                    return msg.reply(`Invalid dimension(s). Desired side length must be in the range of [1, 4096).${docs}`)
+                }
                 return require('./resize').run(msg, Link, res, output, config.SAVE_IMAGES)
             case "mirror":
                 var direction = msg.attachments.size > 0 ? args[1]:args[2]
-                if (typeof direction == 'undefined') return msg.reply(`Invalid direction. It must be horizontal, vertical, or both.${docs}`)
-
+                if (typeof direction == 'undefined') {
+                    return msg.reply(`Invalid direction; must be horizontal, vertical, or both.${docs}`)
+                }
                 var validDirection = false, h = false, v = false, both = false // variable both is for the message reply, other vars are for direction/validity checking
                 switch(direction.toLowerCase()) { // checks if the direction is valid
                     case "h":case "horizontal":
@@ -100,7 +104,25 @@ module.exports = {
                 if (!validDirection) return msg.reply(`Invalid direction. It must be horizontal, vertical, or both.${docs}`)
                 return require('./mirror').run(msg, Link, directions, output, config.SAVE_IMAGES)
             case "invert":
-                require('./invert').run(msg, Link, output, config.SAVE_IMAGES)
+                return require('./invert').run(msg, Link, output, config.SAVE_IMAGES)
+            case "blur":
+                var r = Number(msg.attachments.size > 0 ? args[1]:args[2])
+                if (isNaN(r) || r <= 0) return msg.reply(`Invalid value provided; must be greater than 0.${docs}`)
+                return require('./blur').run(msg, Link, r, output, config.SAVE_IMAGES)
+            case "brightness":
+                var p = Number(msg.attachments.size > 0 ? args[1]:args[2])
+                if (!(p >= -100 && p <= 100)) {
+                    return msg.reply(`Invalid percentage provided; must in the range of [-100, 100].${docs}`) 
+                }
+                return require('./brightness').run(msg, Link, p, output, config.SAVE_IMAGES)
+            case "contrast":
+                var p = Number(msg.attachments.size > 0 ? args[1]:args[2])
+                if (!(p >= -100 && p <= 100)) {
+                    return msg.reply(`Invalid percentage provided; must in the range of [-100, 100].${docs}`) 
+                }
+                return require('./contrast').run(msg, Link, p, output, config.SAVE_IMAGES)
+            case "greyscale":
+                require('./greyscale').run(msg, Link, output, config.SAVE_IMAGES)
         }
     }
 }

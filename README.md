@@ -1,23 +1,25 @@
 # discordjs-bot
-## Description
 This is a multipurpose Discord bot using discord.js.
 
-Made mainly for my needs, it has: a server whitelist, discord user lookup, simple image manipulation, poll creation, and many other various commands.
+Made mainly for my needs, it has: discord user lookup, simple image manipulation, poll creation, and many other various commands.
 
-## Commands and Documentation
-### help
+## Info Commands
+
+#### help
 Provides a link to this page for documentation. Use ```help``` with a command for information about its usage.
 
     help {OPTIONAL:command}
     
 *Aliases: cmds, docs*
-### info
+
+#### info
 Provides information about the bot.
-### status
+#### status
 Provides information about the bot status.
 
 *Alias: uptime*
-### user
+
+#### user
 Provides information about a user from a user ID or mention. https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-
 
     user {OPTIONAL:userid}
@@ -26,167 +28,173 @@ Provides information about a user from a user ID or mention. https://support.dis
 
 *Alias: userinfo*
 
-### serverinfo
+#### serverinfo
 Display informations about the server.
 
 *Alias: server*
-### avatar
+
+#### avatar
 Display a user's avatar / profile picture from a user ID or mention. https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-
 
     avatar {OPTIONAL:userid}
 
     avatar {OPTIONAL:@user}
 
-### rotate
-Rotates an image a specified degree counter-clockwise. Only accepts png, jpg, and jpeg files.
+## Image Manipulation
+Image manipulation commands only accept png and jpg/jpeg files.
 
-With an attachment: 
-    
-    rotate {degrees}
+#### rotate
+Rotates an image a specified degree counter-clockwise.
 
-With a link:
-    
-    rotate {link} {degrees}
+    rotate {OPTIONAL:link} {degrees}
 
-### resize
-Resizes an image. Dimensions can be combined together with an 'x' or separated. Only accepts png, jpg, and jpeg files.
+#### resize
+Resizes an image. Dimensions can be combined together with an 'x' or separated.
 
-With an attachment:
+    resize {OPTIONAL:link} {dimensions}
 
-    resize {dimensions}
-
-With a link:
-
-    resize {link} {dimensions}
-
-Example usage
+Example usage:
 
     resize 1920x1080
 
     resize 1920 1080
 
-### mirror
-Mirrors an image horizontally, vertically, or both ways. Only accepts png, jpg, and jpeg files.
+#### mirror
+Mirrors an image.
 
-Valid directions:
+    mirror {OPTIONAL:link} {direction}
 
+Directions: 
 - Horizontal: h, horizontal
 - Vertical: v, vertical
 - Both: b, hv, vh, both
 
-With an attachment:
+#### invert
+Inverts an image's colors.
 
-    mirror {direction}
+    invert {OPTIONAL:link}
 
-With a link:
+#### blur
+Blurs an image.
 
-    mirror {link} {direction}
+    blur {OPTIONAL:link} {pixels}
 
-### invert
-Inverts an image's colors. Only accepts png, jpg, and jpeg files.
+#### brightness
+Adjusts the brightness of an image.
 
-With an attachment:
+    brightness {OPTIONAL:link} {percentage}
 
-    invert
+#### contrast
+Adjusts the contrast of an image.
 
-With a link:
+    contrast {OPTIONAL:link} {percentage}
 
-    invert {link}
+#### greyscale
+Removes color from an image.
 
-### rng
+    greyscale {OPTIONAL:link}
+
+## Fun Commands
+
+#### rng
 Random number generator. Providing a minimum + maximum number is optional. It is -1000000 and 1000000 by default if you are missing one or both of the arguments.
 
     rng {OPTIONAL:min} {OPTIONAL:max}
 
-### choose
+#### choose
 Choose between at least 2 provided strings. Strings must be separated by a vertical bar ( | ).
 
     choose {option} | {option2}
 
     choose apple | orange | pear
 
-### gen
+#### youtube
+Adds a timestamp to a YouTube link. Provide it in seconds or in a **H:M:S** format. Leading zeros aren't necessary.
+
+    youtube {link} {H:M:S}
+
+*Aliases: yt, time, timestamp*
+
+#### gen
 Generates a password up to 2042 characters and sends it by DM. The default length is 32 if you don't provide one for input.
 
     gen {OPTIONAL:length}
     
 *Aliases: pass, password*
 
-### coinflip
+#### coinflip
 Flips a coin.
 
 *Aliases: flip, coin*
 
-### poll
-Creates a poll. 
+#### poll
+Creates a poll. Provide a number if you want numbered options. 
 
-Create a poll with a check and x:
+    poll {OPTIONAL:number} {question}
 
-    poll {question}
-
-Create a poll with numbers from 1-9 as options:
-
-    poll {number} {question}
-
-### reverse
+#### reverse
 Reverses a provided string.
 
     reverse {string}
 
-### encode
+#### encode
 Converts a string to base64 encoding.
 
     encode {string}
 
-### decode
+#### decode
 Converts a string from base64 encoding.
 
     decode {string}
 
-### namemc
+## Miscellaneous Info
+
+#### namemc
 Display a history of past Minecraft usernames given a provided username.
 
     namemc {username}
 
 *Aliases: mc, minecraft*
 
-### roblox
+#### roblox
 Displays information about a ROBLOX user.
 
     roblox {username}
 
-### website
+#### website
 Displays information about a website or IP.
 
     website {website/ip}
 
 *Aliases: websiteinfo, ip, ipinfo*
 
-### whois
+#### whois
 Displays information about a WHOIS lookup for a specified domain.
 
     whois {website}
 
-### purgedms
+## Miscellaneous
+
+#### purgedms
 Purge up to 100 direct messages from the bot. This must be used in a DM channel with the bot.
 
-### purge
+#### purge
 Purges up to 100 messages. Only users with MANAGE_MESSAGES permissions are allowed to use this command.
 
     purge {amount}
 
-## Restricted commands
+## Restricted Commands
 These commands are restricted to whitelisted user IDs labeled as DEBUGGERS in the config file.
 
-### debug
+#### debug
 Toggles the debugging mode, which restricts bot access to whitelisted debuggers.
 
 *Alias: debugmode*
 
-### saveimages
+#### saveimages
 Toggles saving images. If an upload error occurs, the image is still stored locally.
 
-### external
+#### external
 Toggles accepting images from domains other than cdn.discordapp.com.
 
 ## Installation
@@ -194,7 +202,7 @@ Toggles accepting images from domains other than cdn.discordapp.com.
 - Create the bot invite link: https://discordapi.com/permissions.html
 - Invite the bot to a server that you want it to be in.
 - Put your bot token in the BOT_TOKEN field located in the .env file.
-- Modify the config.json file to fit your needs. Add your whitelisted guild IDs and such. Commands like debugmode/saveimages won't write to the JSON file, but the config will have the default options once the bot restarts.
+- Modify the config.json file to fit your needs. Note that ommands like debugmode/saveimages won't write to the JSON file, but the config will have the set default options once the bot restarts.
 - Change your current directory to the folder in the terminal.
 - Install the necessary node modules with ```npm install```.
 - Start the bot with node.
@@ -210,5 +218,3 @@ Toggles accepting images from domains other than cdn.discordapp.com.
 - If you want to add your token to config vars: click on the settings tab on the app. Click Reveal Config Vars. Add BOT_TOKEN as the KEY and your bot token as the VALUE. Click Add.
 - Click on the Deploy tab.
 - Deploy your application.
-
-Please note the bot requires a restart before joining a newly whitelisted guild.

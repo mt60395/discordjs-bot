@@ -1,18 +1,18 @@
 module.exports = {
-    name: "invert",
-    desc: "Inverts an image's colors.",
-    notice: "Only accepts png, jpg, and jpeg files.",
+    name: "greyscale",
+    desc: "Removes color from an image.",
+    notice: "Only accepts png and jpg/jpeg files.",
     aliases: [],
-    usage: `invert {OPTIONAL:link}`,
+    usage: `greyscale {OPTIONAL:link}`,
     run: (msg, Link, output, SAVE_IMAGES) => {
         const jimp = require('jimp')
         const fs = require('fs');
         
         (async () => {
             let input = await jimp.read(Link)
-            input.invert().write(output)
+            input.greyscale().write(output)
             fs.stat('./' + output, async () => {
-                await msg.channel.send("**Sucessfully inverted colors! :white_check_mark:**", {files:['./' + output]})
+                await msg.channel.send("**Sucessfully greyscaled image! :white_check_mark:**", {files:['./' + output]})
                 .catch(()=>{msg.reply("There was an error uploading your image.")})
                 if (!SAVE_IMAGES) fs.unlink(output, function(){}) 
             })

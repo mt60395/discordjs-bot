@@ -10,19 +10,11 @@ Client.on('ready', () => { // on bot start
     console.log(`Server count: ${Client.guilds.cache.size}`)
     Client.guilds.cache.forEach(g => {
         console.log(g.id)
-        if (!config.GUILDS.includes(g.id)){ // if not whitelisted
-            g.leave()
-            console.log("The client has left a non whitelisted server.")
-        }
     })
 })
 
 Client.on("guildCreate", async g => {
     console.log("The client has joined a new server.")
-    if (!config.GUILDS.includes(g.id)){
-        g.leave()
-        console.log("The client has left after joining a non whitelisted server.")
-    }
 })
 
 const fs = require('fs')

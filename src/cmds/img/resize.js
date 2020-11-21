@@ -3,9 +3,7 @@ module.exports = {
     desc: "Resizes an image. Dimensions can be combined together with an 'x' or separated.",
     notice: "Only accepts png, jpg, and jpeg files.",
     aliases: [],
-    usage: `With an attachment:\nresize {dimensions}
-
-    With a link:\nresize {link} {dimensions}
+    usage: `resize {OPTIONAL:link} {dimensions}
     
     Example usage:
 

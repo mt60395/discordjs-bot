@@ -207,6 +207,13 @@ Toggles accepting images from domains other than cdn.discordapp.com.
 - Install the necessary node modules with ```npm install```.
 - Start the bot with node.
 
+If you are hosting on an Arch-based distribution with an ARM processor, run these commands before installing the node modules:
+
+    sudo pacman -S chromium
+    export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
+    export PUPPETEER_EXECUTABLE_PATH=$(which chromium)
+    sudo ln -s /usr/bin/chromium /usr/bin/chromium-browser
+
 ## Hosting with Heroku
 - Create an account: https://heroku.com
 - Fork this repository or clone it and upload it to GitHub with all the files modified as you wish.

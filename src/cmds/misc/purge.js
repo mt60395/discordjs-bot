@@ -5,7 +5,7 @@ module.exports = {
     aliases: [],
     usage: "purge {amount}",
     run: (Client, msg, args) => {
-        if (!msg.member) return msg.reply("This command is not available for direct messages. Did you mean `purgedms`?")
+        if (!msg.guild) return msg.reply("This command is not available for direct messages. Did you mean `purgedms`?")
         if (!(msg.member.hasPermission("MANAGE_MESSAGES")))
             return msg.reply(`You are not authorized to use the command \'${args[0]}\'.`)
         const docs = " Refer to the `help` command if necessary."

@@ -162,7 +162,7 @@ Displays information about a ROBLOX user.
     roblox {username}
 
 #### website
-Displays information about a website or IP.
+Displays information about a website or IP. Only accepts full website addresses with http(s) prepended, and IPv4 or IPv6 addresses.
 
     website {website/ip}
 

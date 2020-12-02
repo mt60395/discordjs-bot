@@ -68,7 +68,7 @@ module.exports = {
                 {name:"Presence", value:presence},
                 {name:"Join Date", value:joinDate}
             )
-            if (!joinTS.isBanned) embed.addFields({name:"Past Usernames", value:nameList})
+            if (nameList.length > 0) embed.addFields({name:"Past Usernames", value:nameList})
             embed.setImage(avatar.data[0].imageUrl)
             msg.channel.send(embed)
         })()

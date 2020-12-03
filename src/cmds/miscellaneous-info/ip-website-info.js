@@ -21,19 +21,16 @@ module.exports = {
             // input: link
             // returns the domain only, with the protocol removed from the link
             arg = fixLink(arg)
-            var protocol = arg.startsWith('https')?'https://':arg.startsWith('http')?'http://':null
-            if (arg.endsWith("/")) arg = arg.slice(0, -1)
-            if (protocol) {
-                return arg.substring(protocol.length);
+            if (arg.includes("://")) {
+                arg = arg.substring(arg.indexOf("://") + "://".length)
             }
-            else if (arg.includes(":")) {
-                return arg;
+            if (arg.endsWith("/")) {
+                arg = arg.slice(0, -1)
             }
-            return null;
+            return arg;
         }
         
         var Link = getDomain(args[1])
-        if (!Link) return msg.reply(`Invalid URL / IP.${docs}`)
 
         const unirest = require('unirest');
         const cheerio = require('cheerio');

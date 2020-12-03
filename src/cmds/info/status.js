@@ -9,7 +9,8 @@ module.exports = {
             var hours = Math.floor((ms/3600000) % 24)
             var minutes = Math.floor((ms/60000) % 60)
             var seconds = ((ms % 60000) / 1000).toFixed(0)
-            return `${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds`
+            var formatted = `${hours} hours, ${minutes} minutes, ${seconds} seconds`;
+            return `${days} day${days == 1? "":"s"}, ` + formatted;
         }
         var embed = new Discord.MessageEmbed()
         .setColor("BLUE")

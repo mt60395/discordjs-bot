@@ -39,6 +39,7 @@ module.exports = {
             var lookingFor = ["Country", "State / Region", "District / County", "Zip / Postal code", "Coordinates", "ISP"];
             var ipInfo = [];
             ipInfo.push(`IP | ${IP}`)
+            var invalidIP = false;
             await unirest.get(`https://db-ip.com/${IP}`).then(function(result) {
                 let $ = cheerio.load(result.body);
                 lookingFor.forEach(function(value) {
@@ -49,6 +50,10 @@ module.exports = {
                                 ipInfo.push(`${value} | ` + $(e).children()[1].children[0].data);
                             }
                             else {
+                                if (typeof $(e).children()[1].children[0].children == 'undefined') {
+                                    invalidIP = true;
+                                    return;
+                                }
                                 ipInfo.push("Country | " + $(e).children()[1].children[0].children[0].data);
                             }
                         }
@@ -60,7 +65,7 @@ module.exports = {
                     }
                 })
             })
-            return ipInfo;
+            return invalidIP? null:ipInfo;
         }
 
         async function checkIPv4(Link) {
@@ -110,6 +115,9 @@ module.exports = {
             }
             var IP = await resolveDNS(Link);
             var ipInfo = await getInfo(IP);
+            if (!ipInfo) {
+                return msg.reply(`Invalid IP.${docs}`);
+            }
             ipInfo.forEach(function(field) {
                 var header = field.substring(0, field.indexOf(" | "));
                 var text = field.substring(field.indexOf(" | ") + 3).replace("\n", "");

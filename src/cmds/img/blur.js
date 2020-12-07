@@ -3,7 +3,7 @@ module.exports = {
     desc: "Blurs an image.",
     notice: "Only accepts png, jpg, and jpeg files.",
     aliases: [],
-    usage: `blur {OPTIONAL:link} {pixels}`,
+    usage: `blur {link} [pixels]`,
     run: (msg, Link, r, output, SAVE_IMAGES) => {
         const jimp = require('jimp')
         const fs = require('fs');

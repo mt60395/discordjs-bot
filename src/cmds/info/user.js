@@ -2,8 +2,8 @@ module.exports = {
     name: "user",
     desc: "Provides information about a user from a user ID or mention. https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-",
     aliases: ['userinfo'],
-    usage: `user {OPTIONAL:userid}
-    user {OPTIONAL:@user}`,
+    usage: `user {userid}
+    user {user}`,
     run: (Client, msg, args) => {
         const Discord = require('discord.js')
         const docs = " Refer to the `help` command if necessary."
@@ -23,8 +23,7 @@ module.exports = {
                     .setAuthor(`${Data.username}#${Data.discriminator}`, Data.displayAvatarURL({format:"png",dynamic:true}))
                     .setTitle("User Information")
                     .addFields(
-                        {name:"Username", value:Data.username},
-                        {name:"Discriminator", value:Data.discriminator},
+                        {name:"Discord ID", value:id},
                         {name:"Creation Date", value:Data.createdAt},
                         {name:"Avatar URL", value:Data.displayAvatarURL({format:"png",dynamic:true})},
                         {name:"Default Avatar URL", value:Data.defaultAvatarURL},

@@ -3,7 +3,7 @@ module.exports = {
     desc: "Adjusts the contrast of an image.",
     notice: "Only accepts png and jpg/jpeg files.",
     aliases: [],
-    usage: `contrast {OPTIONAL:link} {p}`,
+    usage: `contrast {link} [percentage]`,
     run: (msg, Link, p, output, SAVE_IMAGES) => {
         const jimp = require('jimp')
         const fs = require('fs');

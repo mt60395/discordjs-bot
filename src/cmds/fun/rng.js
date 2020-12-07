@@ -3,7 +3,7 @@ module.exports = {
     desc: "Random number generator.",
     notice: "Providing a minimum + maximum number is optional. It is -1000000 and 1000000 by default if you are missing one or both of the arguments.",
     aliases: [],
-    usage: "rng {OPTIONAL:min} {OPTIONAL:max}",
+    usage: "rng {min} {max}",
     run: (Client, msg, args) => {
         const docs = " Refer to the `help` command if necessary."
         if (typeof args[1] == 'undefined' || typeof args[2] == 'undefined') {

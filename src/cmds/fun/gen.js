@@ -3,7 +3,7 @@ module.exports = {
     desc: "Generates a password up to 2042 characters and sends it by DM.",
     notice: "The default length is 32 if you don't provide one for input.",
     aliases: ['pass', 'password'],
-    usage: "gen {OPTIONAL:length}",
+    usage: "gen {length}",
     run: (Client, msg, args) => {
         const Discord = require('discord.js')
         const docs = " Refer to the `help` command if necessary."

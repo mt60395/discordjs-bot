@@ -2,7 +2,7 @@ module.exports = {
     name: "help",
     desc: "Provides information about commands and usage.",
     aliases: ['cmds', 'docs'],
-    usage: "help {OPTIONAL:command}",
+    usage: "help {command}",
     run: (Client, msg, args) => {
         const Discord = require('discord.js')
         if (typeof args[1] == 'undefined')

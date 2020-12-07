@@ -3,7 +3,7 @@ module.exports = {
     desc: "Inverts an image's colors.",
     notice: "Only accepts png, jpg, and jpeg files.",
     aliases: [],
-    usage: `invert {OPTIONAL:link}`,
+    usage: `invert {link}`,
     run: (msg, Link, output, SAVE_IMAGES) => {
         const jimp = require('jimp')
         const fs = require('fs');

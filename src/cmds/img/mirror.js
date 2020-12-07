@@ -3,7 +3,7 @@ module.exports = {
     desc: "Mirrors an image horizontally, vertically, or both ways.",
     notice: "Only accepts png, jpg, and jpeg files.",
     aliases: [],
-    usage: `mirror {OPTIONAL:link} {direction}
+    usage: `mirror {link} [direction]
     
     Directions:
     - Horizontal: h, horizontal

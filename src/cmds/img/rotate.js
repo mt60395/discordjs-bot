@@ -3,7 +3,7 @@ module.exports = {
     desc: "Rotates an image a specified degree counter-clockwise.",
     notice: "Only accepts png, jpg, and jpeg files.",
     aliases: [],
-    usage: `rotate {OPTIONAL:link} {degrees}`,
+    usage: `rotate {link} [degrees]`,
     run: (msg, Link, degree, output, SAVE_IMAGES) => {
         const jimp = require('jimp')
         const fs = require('fs');

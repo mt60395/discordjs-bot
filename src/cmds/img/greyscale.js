@@ -3,7 +3,7 @@ module.exports = {
     desc: "Removes color from an image.",
     notice: "Only accepts png and jpg/jpeg files.",
     aliases: [],
-    usage: `greyscale {OPTIONAL:link}`,
+    usage: `greyscale {link}`,
     run: (msg, Link, output, SAVE_IMAGES) => {
         const jimp = require('jimp')
         const fs = require('fs');

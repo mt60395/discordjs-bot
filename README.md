@@ -175,6 +175,11 @@ Displays information about a WHOIS lookup for a specified domain.
 
     whois [website]
 
+#### tosource
+Sends a link to the source of the command specified.
+
+    tosource [command]
+
 ## Miscellaneous
 
 #### purgedms
@@ -199,7 +204,7 @@ Toggles saving images. If an upload error occurs, the image is still stored loca
 #### external
 Toggles accepting images from domains other than cdn.discordapp.com.
 
-### invite
+#### invite
 Gets the invite link for the discord bot. This is restricted because I currently make it so only I can invite my bot, hosted by me.
 
 ## Installation

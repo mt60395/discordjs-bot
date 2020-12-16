@@ -16,6 +16,7 @@ module.exports = {
         if (times.length > 3) { // S:M:H
             return msg.reply(`Too many numbers provided.${docs}`)
         }
+        const link = args[1].replace(".be/", "be.com/watch?v=");
         seconds = 0
         for (var i = 0; i < times.length; i++) {
             n = Number(times[i])
@@ -28,6 +29,6 @@ module.exports = {
             }
             seconds += n;
         }
-        msg.channel.send(`${args[1]}&t=${seconds}`)
+        msg.channel.send(`${link}&t=${seconds}`)
     }
 }

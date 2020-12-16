@@ -21,7 +21,7 @@ module.exports = {
             // returns the domain only, with the protocol removed from the link
             arg = fixLink(arg)
             if (arg.includes("://")) {
-                arg = arg.substring(arg.indexOf("://") + "://".length)
+                arg = arg.replace("://", "");
             }
             if (arg.endsWith("/")) {
                 arg = arg.slice(0, -1)

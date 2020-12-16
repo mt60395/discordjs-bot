@@ -22,7 +22,7 @@ module.exports = {
             // returns the domain only, with the protocol removed from the link
             arg = fixLink(arg)
             if (arg.includes("://")) {
-                arg = arg.substring(arg.indexOf("://") + "://".length)
+                arg = arg.replace("://", "");
             }
             if (arg.endsWith("/")) {
                 arg = arg.slice(0, -1)
@@ -106,11 +106,14 @@ module.exports = {
                 }
             }
             else { // ipv4
-                if (checkIPv4(Link)) {
-                    embed.setTitle("Website / IP Information");
-                }
-                else {
-                    return msg.reply(`Invalid URL or missing innerHTML (bot issue).${docs}`);
+                var valid = await checkIPv4(Link).then(result=>{
+                    if (result) {
+                        return embed.setTitle("Website / IP Information");
+                    }
+                    return false;
+                })
+                if (!valid) {
+                    return msg.reply(`Invalid URL/IP or missing innerHTML (bot issue).${docs}`);
                 }
             }
             var IP = await resolveDNS(Link);

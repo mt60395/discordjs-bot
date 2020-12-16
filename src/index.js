@@ -30,7 +30,8 @@ Client.cmds = new Discord.Collection();
             commandFiles.forEach(function(file) {
                 if (file.includes("handler")) return // for reusing functions
                 var cmd = require(path.join(__dirname, dir, cmdType, file))
-                cmd.category = cmdType
+                cmd.category = cmdType;
+                cmd.fileName = file;
                 Client.cmds.set(cmd.name, cmd)
             })
         })
@@ -45,6 +46,9 @@ Client.on('message', msg => {
     var args = msg.content.substring(PREFIX.length).split(" ") // only use after the prefix
     Client.cmds.forEach(cmd => {
         if (args[0] == cmd.name || cmd.aliases.includes(args[0])) { // command found
+            if (cmd.name == 'tosource') {
+                return cmd.run(msg, args, Client.cmds);
+            }
             switch(cmd.category) {
                 case 'img':
                     return imghandler.handle(Client, msg, args, config)

@@ -2,9 +2,9 @@ module.exports = {
     name: "poll",
     desc: "Creates a poll.",
     aliases: [],
-    usage: `Create a poll with a check and x: poll {question}
+    usage: `Create a poll with a check and x: poll [question]
 
-    Create a poll with numbers from 1-9: poll {number} {question}`,
+    Create a poll with numbers from 1-9: poll {number} [question]`,
     run: (Client, msg, args, config, PREFIX) => {
         const Discord = require('discord.js')
         const docs = " Refer to the `help` command if necessary."

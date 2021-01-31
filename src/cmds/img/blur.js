@@ -7,14 +7,13 @@ module.exports = {
     run: (msg, Link, r, output, SAVE_IMAGES) => {
         const jimp = require('jimp')
         const fs = require('fs');
+        const uploadhandler = require('./uploadhandler');
         
         (async () => {
             let input = await jimp.read(Link)
             input.blur(r).write(output)
             fs.stat('./' + output, async () => {
-                await msg.channel.send(`**Sucessfully blurred image by ${r} pixels! :white_check_mark:**`, {files:['./' + output]})
-                .catch(()=>{msg.reply("There was an error uploading your image.")})
-                if (!SAVE_IMAGES) fs.unlink(output, function(){}) 
+                uploadhandler.handle(input, output, msg, `**Sucessfully blurred image by ${r} pixels! :white_check_mark:**`, SAVE_IMAGES);
             })
         })()
     }

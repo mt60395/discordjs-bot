@@ -46,9 +46,9 @@ Display a user's avatar / profile picture from a user ID or mention. https://sup
 Image manipulation commands only accept png and jpg/jpeg files.
 
 #### rotate
-Rotates an image a specified degree counter-clockwise.
+Rotates an image a specified degree counter-clockwise. Specify the direction "left" or "right" for 90 and 270 degrees, respectively.
 
-    rotate {link} [degrees]
+    rotate {link} [degrees/direction]
 
 #### resize
 Resizes an image. Dimensions can be combined together with an 'x' or separated.

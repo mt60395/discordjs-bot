@@ -24,7 +24,8 @@ module.exports = {
         function isCdn(Link) {
             // returns if an image is a cdn.discordapp.com link if you are hosting on your own PC to not get IP grabbed
             var split = Link.split("://") // {protocol, domain}
-            return (split[0] == "http" || split[0] == "https") && split[1].startsWith("cdn.discordapp.com");
+            return (split[0] == "http" || split[0] == "https") && (
+                split[1].startsWith("cdn.discordapp.com") || split[1].startsWith("media.discordapp.net"));
         }
 
         if (!config.EXTERNAL_HOSTING) // if hosting on your own device
@@ -53,9 +54,18 @@ module.exports = {
 
         switch(args[0]) {
             case "rotate":
-                var degree = Number(msg.attachments.size > 0 ? args[1]:args[2])
-                if (!(degree > 0 && degree < 360)) {
-                    return msg.reply(`Invalid degree; must be in the range of [0, 360).${docs}`)
+                var degree = msg.attachments.size > 0 ? args[1]:args[2]
+                if (degree == "left") {
+                    degree = 90
+                }
+                else if (degree == "right") {
+                    degree = 270
+                }
+                else {
+                    degree = Number(degree)
+                    if (!(degree > 0 && degree < 360)) {
+                        return msg.reply(`Invalid degree; must be in the range of [0, 360).${docs}`)
+                    }
                 }
                 return require('./rotate').run(msg, Link, degree, output, config.SAVE_IMAGES)
                 // single argument exists if attachment provided. else, the second argument will be used

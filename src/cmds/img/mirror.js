@@ -12,7 +12,8 @@ module.exports = {
     run: (msg, Link, directions, output, SAVE_IMAGES) => {
         const jimp = require('jimp')
         const fs = require('fs')
-
+        const uploadhandler = require('./uploadhandler');
+        
         var h = directions[0]
         var v = directions[1]
         var both = h && v;
@@ -20,9 +21,7 @@ module.exports = {
             let input = await jimp.read(Link)
             input.mirror(h, v).write(output)
             fs.stat('./' + output, async () => {
-                await msg.channel.send(`**Sucessfully mirrored ${(both?"horizontally and vertically":h?"horizontally":"vertically")}! :white_check_mark:**`, {files:['./' + output]})
-                .catch(()=>{msg.reply("There was an error uploading your image.")})
-                if (!SAVE_IMAGES) fs.unlink(output, function(){}) 
+                uploadhandler.handle(input, output, msg, `**Sucessfully mirrored ${(both?"horizontally and vertically":h?"horizontally":"vertically")}! :white_check_mark:**`, SAVE_IMAGES);
             })
         })()
     }

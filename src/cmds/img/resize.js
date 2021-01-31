@@ -13,16 +13,15 @@ module.exports = {
     run: (msg, Link, res, output, SAVE_IMAGES) => {
         const jimp = require('jimp')
         const fs = require('fs');
-
+        const uploadhandler = require('./uploadhandler');
+        
         (async () => {
             let input = await jimp.read(Link)
             input.resize(res[0], res[1])
             .quality(50)
             .write(output)
             fs.stat('./' + output, async () => {
-                await msg.channel.send(`**Sucessfully resized to ${res.join("x")}! :white_check_mark:**`, {files:['./' + output]})
-                .catch(()=>{msg.reply("There was an error uploading your image.")})
-                if (!SAVE_IMAGES) fs.unlink(output, function(){}) 
+                uploadhandler.handle(input, output, msg, `**Sucessfully resized to ${res.join("x")}! :white_check_mark:**`, SAVE_IMAGES);
             })
         })()
     }

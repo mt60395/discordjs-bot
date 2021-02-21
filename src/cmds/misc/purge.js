@@ -18,7 +18,7 @@ module.exports = {
             })()
         }
         else {
-            msg.reply(`Invalid number. The integer must be less than 101 and greater than 0.${docs}`)
+            msg.reply(`Invalid number. The integer must be in the range of (0, 100].${docs}`);
         }
     }
 }

@@ -51,7 +51,7 @@ Rotates an image a specified degree counter-clockwise. Specify the direction "le
     rotate {link} [degrees/direction]
 
 #### resize
-Resizes an image. Dimensions can be combined together with an 'x' or separated.
+Resizes an image. Dimensions can be combined together with an 'x' or separated. Use dimension 'AUTO' for auto resizing.
 
     resize {link} [dimensions]
 
@@ -214,7 +214,7 @@ Gets the invite link for the discord bot. This is restricted because I currently
 - Put your bot token in the BOT_TOKEN field located in the `.env.example` file. Rename the file to `.env`
 - Modify the `config.json.example` file to fit your needs and rename the file to `config.json`. Note that commands like debugmode/saveimages won't write to the JSON file, but the config will have the set default options once the bot restarts.
 - Change your current directory to the folder using the terminal.
-- Install the necessary node modules with ```npm install```.
+- Install the necessary node modules with ```npm i```.
 - Start the bot with node.
 
 ## Hosting with Heroku

@@ -13,6 +13,7 @@ module.exports = {
         if (typeof args[1] == 'undefined' || typeof args[2] == 'undefined') return msg.reply(`Command usage error.${docs}`) // at least 2 args
         var choices = msg.content.substring(PREFIX.length + "choose ".length).split(" | ")
         if (choices.length < 2) return msg.reply(`At least 2 choices must be separated by vertical lines | with spaces.${docs}`)
-        msg.reply(choices[Math.floor(Math.random() * (choices.length))])
+        const Discord = require('discord.js');
+        msg.reply(Discord.Util.removeMentions(choices[Math.floor(Math.random() * (choices.length))]));
     }
 }

@@ -11,6 +11,7 @@ module.exports = {
 
         var decoded = Buffer.from(toDecode, 'base64')
         if (decoded.toString().length < 1) return msg.reply("Could not decode the string.")
-        msg.channel.send(decoded.toString())
+        const Discord = require('discord.js');
+        msg.channel.send(Discord.Util.removeMentions(decoded.toString()));
     }
 }

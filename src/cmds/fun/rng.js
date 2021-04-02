@@ -19,6 +19,10 @@ module.exports = {
         if (floatFlag) {
             var numDec = num.toString().split("."), num2Dec = num2.toString().split(".")
             var decimals // longest decimals to use as the rounding point
+            if (typeof numDec[1] == 'undefined' && typeof num2Dec[1] == 'undefined') {
+                return msg.reply("NaN");  // 😠
+            }
+
             if (typeof numDec[1] == 'undefined') {
                 decimals = num2Dec[1].length
             }

@@ -16,7 +16,13 @@ module.exports = {
         if (times.length > 3) { // S:M:H
             return msg.reply(`Too many numbers provided.${docs}`)
         }
-        const link = args[1].replace(".be/", "be.com/watch?v=");
+        let link = args[1].replace(".be/", "be.com/watch?v=");
+        if (link.includes("&t")) {
+            link = link.substring(0, link.indexOf("&t"));
+        }
+        if (link.includes("?t")) {
+            link = link.substring(0, link.indexOf("?t"));
+        }
         seconds = 0
         for (var i = 0; i < times.length; i++) {
             n = Number(times[i])
